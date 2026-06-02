@@ -277,28 +277,25 @@
             statusLabel.innerText = 'Transforming on backend...';
             outputContainer.innerHTML = `<span style="color: var(--accent-color);">Streaming processing request across network...</span>`;
 
-            try {
-                // 🚀 LIVE BACKEND LINK: Replace URL path when your secure environment is hosted
-                /*
-                const response = await fetch('https://api.apislabsllc.com/v1/transform', {
+try {
+                // 🚀 LIVE BACKEND LINK: Connected to your live secure Render appliance
+                const response = await fetch('https://renderbackend-dnyz.onrender.com/v1/transform', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json' 
+                    },
                     body: JSON.stringify({ payload: payloadData })
                 });
+                
                 if (!response.ok) throw new Error('Appliance processing error');
+                
                 const data = await response.json();
                 
-                outputContainer.style.color = '#ffffff';
-                outputContainer.innerText = data.result;
-                */
-
-                // SIMULATED SECURE TIMEOUT (Remove when connecting real API)
-                await new Promise(resolve => setTimeout(resolve, 1800));
-                
+                // Render results from isolated server memory to user dashboard layout
                 statusLight.className = 'status-light complete';
                 statusLabel.innerText = 'Execution Complete';
                 outputContainer.style.color = '#ffffff';
-                outputContainer.innerText = `{\n  "status": "success",\n  "appliance_signature": "APIS_Labs_Secure_v1",\n  "bytes_processed": ${payloadData.length},\n  "output": "Your server will secretly process the code and inject the result right here."\n}`;
+                outputContainer.innerText = data.result;
 
             } catch (err) {
                 statusLight.className = 'status-light error';
