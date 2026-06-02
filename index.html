@@ -233,6 +233,7 @@
     </div>
 
     <script>
+        // DOM Elements
         const payloadInput = document.getElementById('payloadInput');
         const charCounter = document.getElementById('charCounter');
         const transformBtn = document.getElementById('transformBtn');
@@ -241,9 +242,10 @@
         const statusLabel = document.getElementById('statusLabel');
         const outputContainer = document.getElementById('outputContainer');
 
-        const MAX_CAPACITY = 1000; // Define your strict payload character length limit here
+        // Upper validation limit for raw payload text processing
+        const MAX_CAPACITY = 1000; 
 
-        // Live track capacity usage
+        // Live track capacity usage limits
         payloadInput.addEventListener('input', () => {
             const length = payloadInput.value.length;
             charCounter.innerText = `${length.toLocaleString()} / ${MAX_CAPACITY.toLocaleString()} chars`;
@@ -261,7 +263,7 @@
             }
         });
 
-        // Trigger transformation
+        // Trigger network execution loop
         transformBtn.addEventListener('click', async () => {
             const payloadData = payloadInput.value.trim();
             
@@ -270,46 +272,51 @@
                 return;
             }
 
-            // Visual Processing States
+            // Visual Processing States Activated
             transformBtn.disabled = true;
             applianceNode.classList.add('processing');
             statusLight.className = 'status-light active';
             statusLabel.innerText = 'Transforming on backend...';
-            outputContainer.innerHTML = `<span style="color: var(--accent-color);">Streaming processing request across network...</span>`;
+            outputContainer.style.color = 'var(--accent-color)';
+            outputContainer.innerHTML = `<span>Streaming processing request across network...</span>`;
 
-try {
-    const response = await fetch('https://renderbackend-dnyz.onrender.com/v1/transform', {
-        method: 'POST',
-        headers: { 
-            'Content-Type': 'application/json' 
-        },
-        body: JSON.stringify({ payload: payloadData })
-    });
-    
-    if (!response.ok) throw new Error('Appliance processing error');
-    
-    const data = await response.json();
-    
-    // Change out the old status indicators
-    statusLight.className = 'status-light complete';
-    statusLabel.innerText = 'Execution Complete';
-    
-    // ✅ FIX: Render the exact text returned by your secret backend function
-    outputContainer.style.color = '#ffffff';
-    outputContainer.innerText = data.result; 
+            try {
+                // 🚀 LIVE BACKEND PIPELINE CONNECTION
+                const response = await fetch('https://renderbackend-dnyz.onrender.com/v1/transform', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json' 
+                    },
+                    body: JSON.stringify({ payload: payloadData })
+                });
+                
+                if (!response.ok) throw new Error('Appliance processing error');
+                
+                const data = await response.json();
+                
+                // Transition interface state to Complete
+                statusLight.className = 'status-light complete';
+                statusLabel.innerText = 'Execution Complete';
+                
+                // Render exact decrypted text engine response payload
+                outputContainer.style.color = '#ffffff';
+                outputContainer.innerText = data.result; 
 
-} catch (err) {
+            } catch (err) {
+                // UI Fault Isolation Routing
                 statusLight.className = 'status-light error';
                 statusLabel.innerText = 'Processing Fault';
                 outputContainer.style.color = 'var(--error-color)';
                 outputContainer.innerText = 'System error encountered during server isolation execution.';
+                console.error('Pipeline Fault Detected:', err);
             } finally {
+                // Restabilize components
                 transformBtn.disabled = false;
                 applianceNode.classList.remove('processing');
             }
         });
 
-        // Optional Drag & Drop functionality into the Left Field
+        // Drag & Drop File Ingestion Functionality
         payloadInput.addEventListener('dragover', (e) => { e.preventDefault(); });
         payloadInput.addEventListener('drop', (e) => {
             e.preventDefault();
@@ -318,7 +325,7 @@ try {
                 const reader = new FileReader();
                 reader.onload = (event) => {
                     payloadInput.value = event.target.result;
-                    payloadInput.dispatchEvent(new Event('input')); // Fire capacity counter
+                    payloadInput.dispatchEvent(new Event('input')); // Recalculate capacity counter
                 };
                 reader.readAsText(file);
             }
