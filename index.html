@@ -211,7 +211,7 @@
         <div class="panel">
             <div class="panel-title">
                 <span>📥 Payload Input</span>
-                <span class="capacity-counter" id="charCounter">0 / 1,000 chars</span>
+                <span class="capacity-counter" id="charCounter">0 / 5,000 chars</span>
             </div>
             <textarea id="payloadInput" placeholder="Paste your raw payload data or drop a text file here..."></textarea>
         </div>
@@ -243,7 +243,7 @@
         const outputContainer = document.getElementById('outputContainer');
 
         // Upper validation limit for raw payload text processing
-        const MAX_CAPACITY = 1000; 
+        const MAX_CAPACITY = 5000; 
 
         // Live track capacity usage limits
         payloadInput.addEventListener('input', () => {
