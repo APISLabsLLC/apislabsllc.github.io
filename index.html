@@ -52,7 +52,8 @@
 
         .dashboard {
             display: grid;
-            grid-template-columns: minmax(280px, 1.2fr) minmax(320px, 380px) minmax(280px, 1.2fr);
+            /* Fluid multi-column distribution based on minimum comfortable width requirements */
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 20px;
             flex: 1;
             min-height: 0;
@@ -152,7 +153,6 @@
             word-break: break-all;
             color: #8b949e;
             width: 100%;
-            min-width: 240px;
         }
 
         textarea:focus {
@@ -304,12 +304,28 @@
             100% { transform: scale(1.15); box-shadow: 0 0 12px var(--accent-color); }
         }
 
-        /* Responsive structural adjustments for small viewports */
-        @media (max-width: 1024px) {
-            body { height: auto; overflow-y: auto; }
-            .dashboard { grid-template-columns: 1fr; gap: 16px; height: auto; }
-            .panel { height: 500px; }
-            .appliance-panel { height: 450px; }
+        /* 3-Column Maximum Desktop Clamp for Ultrawides */
+        @media (min-width: 1400px) {
+            .dashboard {
+                grid-template-columns: minmax(340px, 1.2fr) minmax(320px, 380px) minmax(340px, 1.2fr);
+            }
+        }
+
+        /* Dynamic height handling for medium/small screens when layout columns break and stack */
+        @media (max-width: 1120px) {
+            body { 
+                height: auto; 
+                overflow-y: auto; 
+            }
+            .dashboard { 
+                height: auto; 
+            }
+            .panel { 
+                height: 520px; 
+            }
+            .appliance-panel { 
+                height: 480px; 
+            }
         }
     </style>
 </head>
