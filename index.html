@@ -49,7 +49,6 @@
             letter-spacing: 0.1em;
         }
 
-        /* 3-Column Main Structural Layout */
         .dashboard {
             display: grid;
             grid-template-columns: 1.2fr 260px 1.2fr;
@@ -80,7 +79,6 @@
             justify-content: space-between;
         }
 
-        /* Twin Input / Output Splitting Layout modules */
         .matrix-split-container {
             display: grid;
             grid-template-rows: 1fr 1fr;
@@ -143,7 +141,6 @@
             font-weight: 600;
         }
 
-        /* Central Hardware Emulator Component */
         .appliance-panel {
             justify-content: center;
             align-items: center;
@@ -246,13 +243,13 @@
                 <div class="matrix-box">
                     <div class="matrix-label label-a">Matrix Alpha (Order Data)</div>
                     <textarea id="dataInputA" placeholder='Data Object: {"id_str": "99823", "COST_USD": "124.50"}'></textarea>
-                    <textarea id="schemaInputA" style="margin-top: 6px; height: 60px; flex: none;" placeholder='Rules Array: [{"source_key": "id_str", "target_key": "id", "type": "int"}]'></textarea>
+                    <textarea id="schemaInputA" style="margin-top: 6px; height: 60px; flex: none;" placeholder='Mapping Rules: [{"source_key": "id_str", "target_key": "id", "type": "int"}]'></textarea>
                 </div>
                 
                 <div class="matrix-box">
                     <div class="matrix-label label-b">Matrix Beta (Inventory Data)</div>
                     <textarea id="dataInputB" placeholder='Data Object: {"part_no": "A-100", "AVAIL_QTY": "15"}'></textarea>
-                    <textarea id="schemaInputB" style="margin-top: 6px; height: 60px; flex: none;" placeholder='Rules Array: [{"source_key": "part_no", "target_key": "sku", "type": "string"}]'></textarea>
+                    <textarea id="schemaInputB" style="margin-top: 6px; height: 60px; flex: none;" placeholder='Mapping Rules: [{"source_key": "part_no", "target_key": "sku", "type": "string"}]'></textarea>
                 </div>
             </div>
         </div>
@@ -302,7 +299,11 @@
 
         const MAX_CAPACITY = 8000; 
 
-        // Live track aggregate text allocation limits across both fields
+        // TARGET ENDPOINT CONFIGURATION
+        // Local Appliance: 'http://127.0.0.1:9001/transform'
+        // Production Cloud: 'https://renderbackend-dnyz.onrender.com/transform'
+        const BASE_ENGINE_URL = 'http://127.0.0.1:9001/transform';
+
         function checkAggregateCapacity() {
             const currentSize = dataInputA.value.length + schemaInputA.value.length + dataInputB.value.length + schemaInputB.value.length;
             charCounter.innerText = `${currentSize.toLocaleString()} / ${MAX_CAPACITY.toLocaleString()} chars`;
@@ -322,9 +323,7 @@
 
         [dataInputA, schemaInputA, dataInputB, schemaInputB].forEach(el => el.addEventListener('input', checkAggregateCapacity));
 
-        // Core Asynchronous Network Dispatched Action Handler
         transformBtn.addEventListener('click', async () => {
-            // Read inputs
             const rawDA = dataInputA.value.trim(); const rawSA = schemaInputA.value.trim();
             const rawDB = dataInputB.value.trim(); const rawSB = schemaInputB.value.trim();
 
@@ -333,7 +332,6 @@
                 return;
             }
 
-            // Client-Side Structural Syntax Guard Verification
             let objDA, objSA, objDB, objSB;
             try {
                 objDA = JSON.parse(rawDA); objSA = JSON.parse(rawSA);
@@ -343,7 +341,6 @@
                 return;
             }
 
-            // Visual Processing States Activated
             transformBtn.disabled = true;
             applianceNode.classList.add('processing');
             statusLight.className = 'status-light active';
@@ -354,26 +351,29 @@
             outputContainerA.innerText = 'Processing Channel Alpha...';
             outputContainerB.innerText = 'Processing Channel Beta...';
 
-            // Isolated network target execution wrapper function
-            const runChannelPipeline = async (dataPayload, configPayload) => {
-                const response = await fetch('https://renderbackend-dnyz.onrender.com/v1/transform', {
+            const runChannelPipeline = async (dataPayload, mappingPayload) => {
+                const response = await fetch(BASE_ENGINE_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ data: dataPayload, schema_config: configPayload })
+                    // 🔄 Updated key parameter to pass 'mapping' over the wire
+                    body: JSON.stringify({ data: dataPayload, mapping: mappingPayload })
                 });
+                
                 const body = await response.json();
-                if (!response.ok) throw new Error(body.detail || 'Processing core failure.');
+                if (!response.ok) {
+                    // Extract structured error payload context or fall back
+                    throw body;
+                }
                 return body;
             };
 
             try {
-                // 🚀 TRULY SIMULTANEOUS PARALLEL DISPATCH (Fires both requests over the wire at once)
+                // 🚀 Parallel dispatch channel execution
                 const [resultAlpha, resultBeta] = await Promise.all([
                     runChannelPipeline(objDA, objSA),
                     runChannelPipeline(objDB, objSB)
                 ]);
 
-                // Render execution responses smoothly
                 statusLight.className = 'status-light complete';
                 statusLabel.innerText = 'Dual Streams Complete';
                 
@@ -386,10 +386,21 @@
             } catch (err) {
                 statusLight.className = 'status-light error';
                 statusLabel.innerText = 'Channel Pipeline Fault';
+                
+                // Unpack structured Pydantic validation trace strings safely
+                let clearErrorMessage = "";
+                if (err && Array.isArray(err.detail)) {
+                    clearErrorMessage = err.detail.map(d => `[Field: ${d.loc.join('.')}] ${d.msg}`).join('\n');
+                } else if (err && err.detail) {
+                    clearErrorMessage = err.detail;
+                } else {
+                    clearErrorMessage = err.message || JSON.stringify(err);
+                }
+                
                 outputContainerA.style.color = 'var(--error-color)';
-                outputContainerA.innerText = `[Isolation Failure Engine Fault]\n${err.message}`;
+                outputContainerA.innerText = `[Engine Processing Fault]\n${clearErrorMessage}`;
                 outputContainerB.style.color = 'var(--error-color)';
-                outputContainerB.innerText = `[Isolation Failure Engine Fault]\n${err.message}`;
+                outputContainerB.innerText = `[Engine Processing Fault]\n${clearErrorMessage}`;
             } finally {
                 transformBtn.disabled = false;
                 applianceNode.classList.remove('processing');
