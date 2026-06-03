@@ -32,7 +32,7 @@
 
         header {
             text-align: center;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
 
         h1 {
@@ -48,6 +48,47 @@
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.1em;
+            margin-bottom: 12px;
+        }
+
+        /* Preset Sample Bar Styling */
+        .preset-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            background: rgba(22, 27, 34, 0.5);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            align-self: center;
+        }
+
+        .preset-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #8b949e;
+            font-weight: 600;
+        }
+
+        .btn-preset {
+            background-color: #21262d;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 6px 14px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-preset:hover {
+            border-color: var(--accent-color);
+            background-color: #30363d;
+            color: #ffffff;
         }
 
         .dashboard {
@@ -334,6 +375,12 @@
     <header>
         <h1>APIS Labs</h1>
         <div class="tagline">Concurrent Stream Transformation Engine</div>
+        
+        <div class="preset-container">
+            <span class="preset-label">Inject Test Suite:</span>
+            <button class="btn-preset" id="loadRetailPreset">E-Commerce Operations</button>
+            <button class="btn-preset" id="loadLogisticsPreset">Logistics & Warehouse Sync</button>
+        </div>
     </header>
 
     <div class="dashboard">
@@ -407,7 +454,38 @@
         const outputContainerB = document.getElementById('outputContainerB');
         const consoleTerminal = document.getElementById('consoleTerminal');
 
+        const loadRetailPreset = document.getElementById('loadRetailPreset');
+        const loadLogisticsPreset = document.getElementById('loadLogisticsPreset');
+
         const MAX_CAPACITY = 8000; 
+
+        // Core Live Testing Suites
+        const testPresets = {
+            retail: {
+                dataA: { "orderId": "ORD-2026-99", "checkout_total": "1450.00", "item_count": "12" },
+                schemaA: [
+                    { "source_key": "orderId", "target_key": "transaction_id", "type": "string" }, 
+                    { "source_key": "checkout_total", "target_key": "revenue_usd", "type": "float" }
+                ],
+                dataB: { "TXN_NUM": 883201, "NET_AMT": "2900.50", "WHSE_QTY": 24.0 },
+                schemaB: [
+                    { "source_key": "TXN_NUM", "target_key": "transaction_id", "type": "string" }, 
+                    { "source_key": "NET_AMT", "target_key": "revenue_usd", "type": "float" }
+                ]
+            },
+            logistics: {
+                dataA: { "Lead_ID": "00Q8000000amXYZ", "Annual_Revenue_Est": "500000", "Is_Enterprise_Tier": "1", "Account_Status": "Active_Contract" },
+                schemaA: [
+                    { "source_key": "Annual_Revenue_Est", "target_key": "arr", "type": "int" },
+                    { "source_key": "Is_Enterprise_Tier", "target_key": "is_enterprise", "type": "bool" }
+                ],
+                dataB: { "pallet_barcode": 44920194, "assigned_load_lbs": 9921, "manifest_locked": 1 },
+                schemaB: [
+                    { "source_key": "assigned_load_lbs", "target_key": "metric_mass", "type": "float" },
+                    { "source_key": "manifest_locked", "target_key": "cleared_flag", "type": "bool" }
+                ]
+            }
+        };
 
         function printLog(message, type = 'info') {
             const timestamp = new Date().toLocaleTimeString();
@@ -443,6 +521,22 @@
                 statusLight.className = "status-light idle";
             }
         }
+
+        function loadPresetSuite(suiteKey) {
+            const suite = testPresets[suiteKey];
+            if (!suite) return;
+
+            dataInputA.value = JSON.stringify(suite.dataA, null, 2);
+            schemaInputA.value = JSON.stringify(suite.schemaA, null, 2);
+            dataInputB.value = JSON.stringify(suite.dataB, null, 2);
+            schemaInputB.value = JSON.stringify(suite.schemaB, null, 2);
+
+            checkAggregateCapacity();
+            printLog(`Injected integrated sample matrix suite: [${suiteKey.toUpperCase()}].`, "success");
+        }
+
+        loadRetailPreset.addEventListener('click', () => loadPresetSuite('retail'));
+        loadLogisticsPreset.addEventListener('click', () => loadPresetSuite('logistics'));
 
         [dataInputA, schemaInputA, dataInputB, schemaInputB].forEach(el => el.addEventListener('input', checkAggregateCapacity));
 
