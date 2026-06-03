@@ -236,20 +236,20 @@
         <div class="panel">
             <div class="panel-title">
                 <span>📥 Client Ingestion Vectors</span>
-                <span class="capacity-counter" id="charCounter">0 / 5,000 chars</span>
+                <span class="capacity-counter" id="charCounter">0 / 8,000 chars</span>
             </div>
             
             <div class="matrix-split-container">
                 <div class="matrix-box">
                     <div class="matrix-label label-a">Matrix Alpha (Order Data)</div>
-                    <textarea id="dataInputA" placeholder='Data Object: {"id_str": "99823", "COST_USD": "124.50"}'></textarea>
-                    <textarea id="schemaInputA" style="margin-top: 6px; height: 60px; flex: none;" placeholder='Mapping Rules: [{"source_key": "id_str", "target_key": "id", "type": "int"}]'></textarea>
+                    <textarea id="dataInputA" placeholder='{"orderId": "ORD-2026-99", "checkout_total": "1450.00", "item_count": "12"}'></textarea>
+                    <textarea id="schemaInputA" style="margin-top: 6px; height: 75px; flex: none;" placeholder='[{"source_key": "orderId", "target_key": "transaction_id", "type": "string"}, {"source_key": "checkout_total", "target_key": "revenue_usd", "type": "float"}]'></textarea>
                 </div>
                 
                 <div class="matrix-box">
                     <div class="matrix-label label-b">Matrix Beta (Inventory Data)</div>
-                    <textarea id="dataInputB" placeholder='Data Object: {"part_no": "A-100", "AVAIL_QTY": "15"}'></textarea>
-                    <textarea id="schemaInputB" style="margin-top: 6px; height: 60px; flex: none;" placeholder='Mapping Rules: [{"source_key": "part_no", "target_key": "sku", "type": "string"}]'></textarea>
+                    <textarea id="dataInputB" placeholder='{"TXN_NUM": 883201, "NET_AMT": "2900.50", "WHSE_QTY": 24.0}'></textarea>
+                    <textarea id="schemaInputB" style="margin-top: 6px; height: 75px; flex: none;" placeholder='[{"source_key": "TXN_NUM", "target_key": "transaction_id", "type": "string"}, {"source_key": "NET_AMT", "target_key": "revenue_usd", "type": "float"}]'></textarea>
                 </div>
             </div>
         </div>
@@ -297,12 +297,7 @@
         const outputContainerA = document.getElementById('outputContainerA');
         const outputContainerB = document.getElementById('outputContainerB');
 
-        const MAX_CAPACITY = 5000; 
-
-        // TARGET ENDPOINT CONFIGURATION
-        // Local Appliance: 'http://127.0.0.1:9001/transform'
-        // Production Cloud: 'https://renderbackend-dnyz.onrender.com/transform'
-        const BASE_ENGINE_URL = 'http://127.0.0.1:9001/transform';
+        const MAX_CAPACITY = 8000; 
 
         function checkAggregateCapacity() {
             const currentSize = dataInputA.value.length + schemaInputA.value.length + dataInputB.value.length + schemaInputB.value.length;
@@ -322,6 +317,30 @@
         }
 
         [dataInputA, schemaInputA, dataInputB, schemaInputB].forEach(el => el.addEventListener('input', checkAggregateCapacity));
+
+        // Isolated execution helper to trap errors per stream cleanly
+        const runChannelPipeline = async (dataPayload, mappingPayload) => {
+            const response = await fetch('http://127.0.0.1:9001/transform', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data: dataPayload, mapping: mappingPayload })
+            });
+            
+            const body = await response.json();
+            if (!response.ok) {
+                throw body;
+            }
+            return body;
+        };
+
+        const formatPipeError = (err) => {
+            if (err && Array.isArray(err.detail)) {
+                return err.detail.map(d => `[Field: ${d.loc.join('.')}] ${d.msg}`).join('\n');
+            } else if (err && err.detail) {
+                return typeof err.detail === 'string' ? err.detail : JSON.stringify(err.detail);
+            }
+            return err.message || JSON.stringify(err);
+        };
 
         transformBtn.addEventListener('click', async () => {
             const rawDA = dataInputA.value.trim(); const rawSA = schemaInputA.value.trim();
@@ -351,60 +370,44 @@
             outputContainerA.innerText = 'Processing Channel Alpha...';
             outputContainerB.innerText = 'Processing Channel Beta...';
 
-            const runChannelPipeline = async (dataPayload, mappingPayload) => {
-                const response = await fetch(BASE_ENGINE_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    // 🔄 Updated key parameter to pass 'mapping' over the wire
-                    body: JSON.stringify({ data: dataPayload, mapping: mappingPayload })
-                });
-                
-                const body = await response.json();
-                if (!response.ok) {
-                    // Extract structured error payload context or fall back
-                    throw body;
-                }
-                return body;
-            };
+            // Safe dual resolution utilizing individual catch logic
+            const results = await Promise.allSettled([
+                runChannelPipeline(objDA, objSA),
+                runChannelPipeline(objDB, objSB)
+            ]);
 
-            try {
-                // 🚀 Parallel dispatch channel execution
-                const [resultAlpha, resultBeta] = await Promise.all([
-                    runChannelPipeline(objDA, objSA),
-                    runChannelPipeline(objDB, objSB)
-                ]);
+            const alphaRes = results[0];
+            const betaRes = results[1];
 
+            // Evaluate system outcome status lights
+            if (alphaRes.status === 'fulfilled' && betaRes.status === 'fulfilled') {
                 statusLight.className = 'status-light complete';
                 statusLabel.innerText = 'Dual Streams Complete';
-                
-                outputContainerA.style.color = '#ffffff';
-                outputContainerA.innerText = JSON.stringify(resultAlpha, null, 2);
-                
-                outputContainerB.style.color = '#ffffff';
-                outputContainerB.innerText = JSON.stringify(resultBeta, null, 2);
-
-            } catch (err) {
+            } else {
                 statusLight.className = 'status-light error';
                 statusLabel.innerText = 'Channel Pipeline Fault';
-                
-                // Unpack structured Pydantic validation trace strings safely
-                let clearErrorMessage = "";
-                if (err && Array.isArray(err.detail)) {
-                    clearErrorMessage = err.detail.map(d => `[Field: ${d.loc.join('.')}] ${d.msg}`).join('\n');
-                } else if (err && err.detail) {
-                    clearErrorMessage = err.detail;
-                } else {
-                    clearErrorMessage = err.message || JSON.stringify(err);
-                }
-                
-                outputContainerA.style.color = 'var(--error-color)';
-                outputContainerA.innerText = `[Engine Processing Fault]\n${clearErrorMessage}`;
-                outputContainerB.style.color = 'var(--error-color)';
-                outputContainerB.innerText = `[Engine Processing Fault]\n${clearErrorMessage}`;
-            } finally {
-                transformBtn.disabled = false;
-                applianceNode.classList.remove('processing');
             }
+
+            // Render Output Alpha Monitor
+            if (alphaRes.status === 'fulfilled') {
+                outputContainerA.style.color = '#ffffff';
+                outputContainerA.innerText = JSON.stringify(alphaRes.value, null, 2);
+            } else {
+                outputContainerA.style.color = 'var(--error-color)';
+                outputContainerA.innerText = `[Isolation Failure Engine Fault]\n${formatPipeError(alphaRes.reason)}`;
+            }
+
+            // Render Output Beta Monitor
+            if (betaRes.status === 'fulfilled') {
+                outputContainerB.style.color = '#ffffff';
+                outputContainerB.innerText = JSON.stringify(betaRes.value, null, 2);
+            } else {
+                outputContainerB.style.color = 'var(--error-color)';
+                outputContainerB.innerText = `[Isolation Failure Engine Fault]\n${formatPipeError(betaRes.reason)}`;
+            }
+
+            transformBtn.disabled = false;
+            applianceNode.classList.remove('processing');
         });
     </script>
 </body>
