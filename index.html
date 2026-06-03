@@ -52,7 +52,7 @@
 
         .dashboard {
             display: grid;
-            grid-template-columns: 1.2fr 380px 1.2fr;
+            grid-template-columns: minmax(280px, 1.2fr) minmax(320px, 380px) minmax(280px, 1.2fr);
             gap: 20px;
             flex: 1;
             min-height: 0;
@@ -67,6 +67,7 @@
             padding: 1.2rem;
             box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             position: relative;
+            min-width: 0; /* Dynamic grid item scaling protection */
         }
 
         .panel-title {
@@ -93,6 +94,7 @@
             flex-direction: column;
             min-height: 0;
             flex: 1;
+            min-width: 0;
         }
 
         .matrix-label {
@@ -136,6 +138,7 @@
         }
 
         .output-view {
+            box-sizing: border-box;
             flex: 1;
             background: #0d1117;
             border: 1px solid var(--border-color);
@@ -146,7 +149,10 @@
             line-height: 1.3;
             overflow-y: auto;
             white-space: pre-wrap;
+            word-break: break-all;
             color: #8b949e;
+            width: 100%;
+            min-width: 240px;
         }
 
         textarea:focus {
@@ -297,6 +303,14 @@
             0% { transform: scale(1); box-shadow: 0 0 4px var(--accent-color); }
             100% { transform: scale(1.15); box-shadow: 0 0 12px var(--accent-color); }
         }
+
+        /* Responsive structural adjustments for small viewports */
+        @media (max-width: 1024px) {
+            body { height: auto; overflow-y: auto; }
+            .dashboard { grid-template-columns: 1fr; gap: 16px; height: auto; }
+            .panel { height: 500px; }
+            .appliance-panel { height: 450px; }
+        }
     </style>
 </head>
 <body>
@@ -385,6 +399,8 @@
             logLine.className = `log-entry ${type}`;
             logLine.innerText = `[${timestamp}] ${message}`;
             consoleTerminal.appendChild(logLine);
+            
+            // Auto-scroll anchor point reset
             consoleTerminal.scrollTop = consoleTerminal.scrollHeight;
         }
 
@@ -463,14 +479,12 @@
         setupDragAndDrop(schemaInputB, "Beta Vector Normalization Rules");
 
         const runChannelPipeline = async (dataPayload, mappingPayload) => {
-            // 🛠️ FIXED: Re-routed endpoint paths to /v1 version controller block 
             const response = await fetch('https://renderbackend-dnyz.onrender.com/v1/transform', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
                     'X-Demo-Token': 'apis-labs-sandbox-2026-secure'
                 },
-                // 🛠️ FIXED: Wrapped and stringified inbound parameters to mirror the structural schemas expected by the engine
                 body: JSON.stringify({
                     payload: JSON.stringify({ data: dataPayload, mapping: mappingPayload })
                 })
