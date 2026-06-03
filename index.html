@@ -596,7 +596,7 @@
                     'X-Demo-Token': 'apis-labs-sandbox-2026-secure'
                 },
                 body: JSON.stringify({
-                    payload: JSON.stringify({ data: dataPayload, mapping: mappingPayload })
+                    payload: { data: dataPayload, mapping: mappingPayload }
                 })
             });
             
@@ -696,9 +696,20 @@
                     printLog("System alert: Runtime anomalies logged during processing matrix conversion pipelines.", "error");
                 }
 
+                // Handle Alpha Telemetry Display
                 if (alphaRes.status === 'fulfilled') {
                     outputContainerA.style.color = '#ffffff';
-                    outputContainerA.innerText = JSON.stringify(alphaRes.value, null, 2);
+                    let responseData = alphaRes.value;
+                    
+                    // Unpack stringified result objects if echoed back as a string container
+                    if (responseData && responseData.result && typeof responseData.result === 'string') {
+                        try {
+                            responseData.result = JSON.parse(responseData.result);
+                        } catch (e) {
+                            console.log("Alpha response result property contains native plain text string.");
+                        }
+                    }
+                    outputContainerA.innerText = JSON.stringify(responseData, null, 2);
                     printLog("Alpha monitor telemetry updated successfully.", "success");
                 } else {
                     outputContainerA.style.color = 'var(--error-color)';
@@ -706,9 +717,20 @@
                     printLog(`Channel Alpha Engine Failure Trace: ${formatPipeError(alphaRes.reason)}`, "error");
                 }
 
+                // Handle Beta Telemetry Display
                 if (betaRes.status === 'fulfilled') {
                     outputContainerB.style.color = '#ffffff';
-                    outputContainerB.innerText = JSON.stringify(betaRes.value, null, 2);
+                    let responseData = betaRes.value;
+                    
+                    // Unpack stringified result objects if echoed back as a string container
+                    if (responseData && responseData.result && typeof responseData.result === 'string') {
+                        try {
+                            responseData.result = JSON.parse(responseData.result);
+                        } catch (e) {
+                            console.log("Beta response result property contains native plain text string.");
+                        }
+                    }
+                    outputContainerB.innerText = JSON.stringify(responseData, null, 2);
                     printLog("Beta monitor telemetry updated successfully.", "success");
                 } else {
                     outputContainerB.style.color = 'var(--error-color)';
