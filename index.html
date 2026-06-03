@@ -443,13 +443,20 @@
         setupDragAndDrop(schemaInputB, "Beta Vector Normalization Rules");
 
         const runChannelPipeline = async (dataPayload, mappingPayload) => {
-            /* 🛠️ REMOVED THE TRAILING SLASH STRIP FOR BULLETPROOF MATCHING AGAINST DECORATOR */
             const response = await fetch('https://renderbackend-dnyz.onrender.com/transform', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-Demo-Token': 'apis-labs-sandbox-2026-secure' // 🛡️ Handshake token pass
+                },
                 body: JSON.stringify({ data: dataPayload, mapping: mappingPayload })
             });
             
+            // Handle native API rate limitation response structures explicitly
+            if (response.status === 429) {
+                throw { rateLimited: true, message: "Rate limit exceeded. Maximum 10 requests allowed per minute." };
+            }
+
             const body = await response.json();
             if (!response.ok) {
                 throw body;
@@ -458,6 +465,9 @@
         };
 
         const formatPipeError = (err) => {
+            if (err && err.rateLimited) {
+                return err.message;
+            }
             if (err && Array.isArray(err.detail)) {
                 return err.detail.map(d => `[Field: ${d.loc.join('.')}] ${d.msg}`).join('\n');
             } else if (err && err.detail) {
@@ -509,7 +519,15 @@
             const alphaRes = results[0];
             const betaRes = results[1];
 
-            if (alphaRes.status === 'fulfilled' && betaRes.status === 'fulfilled') {
+            // Evaluate if rate limits or pipeline defects dropped either array channel
+            const isAlphaRate = alphaRes.status === 'rejected' && alphaRes.reason.rateLimited;
+            const isBetaRate = betaRes.status === 'rejected' && betaRes.reason.rateLimited;
+
+            if (isAlphaRate || isBetaRate) {
+                statusLight.className = 'status-light error';
+                statusLabel.innerText = 'Throttled (HTTP 429)';
+                printLog("System alert: API rate monitoring rules blocked processing arrays.", "warn");
+            } else if (alphaRes.status === 'fulfilled' && betaRes.status === 'fulfilled') {
                 statusLight.className = 'status-light complete';
                 statusLabel.innerText = 'Dual Streams Complete';
                 printLog("Simultaneous task arrays returned success metrics.", "success");
