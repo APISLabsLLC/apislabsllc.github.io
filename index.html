@@ -88,7 +88,6 @@
             min-height: 0;
         }
 
-        /* 🛠️ FIXED: Rigid flex containment forces boxes to share height instead of expanding */
         .matrix-box {
             display: flex;
             flex-direction: column;
@@ -115,7 +114,7 @@
             font-size: 0.85rem;
             line-height: 1.3;
             outline: none;
-            resize: none; /* Prevents visual distortion */
+            resize: none;
             background: #0d1117;
             border: 1px solid var(--border-color);
             border-radius: 6px;
@@ -125,7 +124,6 @@
             transition: background-color 0.2s, border-color 0.2s;
         }
 
-        /* 🛠️ FIXED: Proportional layout ratios ensure predictable view sizes */
         textarea[id^="dataInput"] {
             flex: 1.4;
             min-height: 0;
@@ -465,14 +463,17 @@
         setupDragAndDrop(schemaInputB, "Beta Vector Normalization Rules");
 
         const runChannelPipeline = async (dataPayload, mappingPayload) => {
-            /* 🛠️ FIXED: Removed trailing slash to prevent routing collision exceptions on proxy environments */
-            const response = await fetch('https://renderbackend-dnyz.onrender.com/transform', {
+            // 🛠️ FIXED: Re-routed endpoint paths to /v1 version controller block 
+            const response = await fetch('https://renderbackend-dnyz.onrender.com/v1/transform', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
                     'X-Demo-Token': 'apis-labs-sandbox-2026-secure'
                 },
-                body: JSON.stringify({ data: dataPayload, mapping: mappingPayload })
+                // 🛠️ FIXED: Wrapped and stringified inbound parameters to mirror the structural schemas expected by the engine
+                body: JSON.stringify({
+                    payload: JSON.stringify({ data: dataPayload, mapping: mappingPayload })
+                })
             });
             
             if (response.status === 429) {
@@ -518,7 +519,6 @@
                 return;
             }
 
-            /* 🛠️ FIXED: Coerces the items explicitly into clean structural property shapes for Pydantic alignment */
             const cleanMappingA = Array.isArray(objSA) ? objSA.map(r => ({
                 source_key: String(r.source_key || ''),
                 target_key: String(r.target_key || ''),
