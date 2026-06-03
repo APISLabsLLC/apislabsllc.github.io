@@ -93,7 +93,6 @@
 
         .dashboard {
             display: grid;
-            /* Fluid multi-column distribution based on minimum comfortable width requirements */
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 20px;
             flex: 1;
@@ -109,7 +108,7 @@
             padding: 1.2rem;
             box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             position: relative;
-            min-width: 0; /* Dynamic grid item scaling protection */
+            min-width: 0;
         }
 
         .panel-title {
@@ -345,14 +344,12 @@
             100% { transform: scale(1.15); box-shadow: 0 0 12px var(--accent-color); }
         }
 
-        /* 3-Column Maximum Desktop Clamp for Ultrawides */
         @media (min-width: 1400px) {
             .dashboard {
                 grid-template-columns: minmax(340px, 1.2fr) minmax(320px, 380px) minmax(340px, 1.2fr);
             }
         }
 
-        /* Dynamic height handling for medium/small screens when layout columns break and stack */
         @media (max-width: 1120px) {
             body { 
                 height: auto; 
@@ -459,7 +456,6 @@
 
         const MAX_CAPACITY = 8000; 
 
-        // Core Live Testing Suites
         const testPresets = {
             retail: {
                 dataA: { "orderId": "ORD-2026-99", "checkout_total": "1450.00", "item_count": "12" },
@@ -493,8 +489,6 @@
             logLine.className = `log-entry ${type}`;
             logLine.innerText = `[${timestamp}] ${message}`;
             consoleTerminal.appendChild(logLine);
-            
-            // Auto-scroll anchor point reset
             consoleTerminal.scrollTop = consoleTerminal.scrollHeight;
         }
 
@@ -589,7 +583,6 @@
         setupDragAndDrop(schemaInputB, "Beta Vector Normalization Rules");
 
         const runChannelPipeline = async (dataPayload, mappingPayload) => {
-            // Stringify the payload contents to match the FastAPI model string expectation
             const serializedInnerPayload = JSON.stringify({ 
                 data: dataPayload, 
                 mapping: mappingPayload 
@@ -674,7 +667,6 @@
             printLog("Dispatched parallel execution requests to Render cluster nodes.", "accent");
             printLog("Channel Alpha -> Initializing property map tasks...", "info");
             printLog("Channel Beta -> Initializing catalog configuration profiles...", "info");
-            printLog("⚠️ Cold spin alert: Free instance containers can require up to 50s to process initial warm boots.", "warn");
 
             try {
                 const results = await Promise.allSettled([
@@ -702,16 +694,11 @@
                     printLog("System alert: Runtime anomalies logged during processing matrix conversion pipelines.", "error");
                 }
 
-                // ==========================================
-                // 🛠️ UPDATED UI TELEMETRY UNPACKING LOGIC
-                // ==========================================
-
                 // Handle Alpha Telemetry Display
                 if (alphaRes.status === 'fulfilled') {
                     outputContainerA.style.color = '#ffffff';
                     let responseData = alphaRes.value;
                     
-                    // Check for standard enterprise layout schema keys
                     if (responseData && responseData.transformed_data) {
                         outputContainerA.innerText = JSON.stringify(responseData.transformed_data, null, 2);
                     } else {
@@ -729,7 +716,6 @@
                     outputContainerB.style.color = '#ffffff';
                     let responseData = betaRes.value;
                     
-                    // Check for standard enterprise layout schema keys
                     if (responseData && responseData.transformed_data) {
                         outputContainerB.innerText = JSON.stringify(responseData.transformed_data, null, 2);
                     } else {
