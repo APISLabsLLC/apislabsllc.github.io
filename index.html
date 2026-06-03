@@ -78,6 +78,25 @@
             justify-content: space-between;
         }
 
+        .input-sub-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 1rem;
+            min-height: 0;
+        }
+
+        .input-sub-panel:last-child {
+            margin-bottom: 0;
+        }
+
+        .input-label {
+            font-size: 0.85rem;
+            color: #8b949e;
+            margin-bottom: 0.4rem;
+            font-weight: 600;
+        }
+
         /* Column 1 & 3 Editors */
         textarea, .output-view {
             flex: 1;
@@ -210,10 +229,19 @@
         
         <div class="panel">
             <div class="panel-title">
-                <span>📥 Payload Input</span>
+                <span>📥 Client Interface Matrix</span>
                 <span class="capacity-counter" id="charCounter">0 / 5,000 chars</span>
             </div>
-            <textarea id="payloadInput" placeholder="Paste your raw payload data or drop a text file here..."></textarea>
+            
+            <div class="input-sub-panel">
+                <div class="input-label">1. RAW DATA DICTIONARY (JSON Object)</div>
+                <textarea id="dataInput" placeholder='{\n  "id_str": "99823",\n  "COST_USD": "124.50",\n  "part_no": "A-100"\n}'></textarea>
+            </div>
+
+            <div class="input-sub-panel">
+                <div class="input-label">2. TRANSFORMATION BLUEPRINT (Rules Array)</div>
+                <textarea id="schemaInput" placeholder='[\n  {"source_key": "id_str", "target_key": "order_id", "type": "int"},\n  {"source_key": "COST_USD", "target_key": "total_cost", "type": "float"},\n  {"source_key": "part_no", "target_key": "sku", "type": "string"}\n]'></textarea>
+            </div>
         </div>
 
         <div class="panel appliance-panel">
@@ -234,7 +262,8 @@
 
     <script>
         // DOM Elements
-        const payloadInput = document.getElementById('payloadInput');
+        const dataInput = document.getElementById('dataInput');
+        const schemaInput = document.getElementById('schemaInput');
         const charCounter = document.getElementById('charCounter');
         const transformBtn = document.getElementById('transformBtn');
         const applianceNode = document.getElementById('applianceNode');
@@ -242,15 +271,15 @@
         const statusLabel = document.getElementById('statusLabel');
         const outputContainer = document.getElementById('outputContainer');
 
-        // Upper validation limit for raw payload text processing
+        // Upper validation limit for combined inputs
         const MAX_CAPACITY = 5000; 
 
-        // Live track capacity usage limits
-        payloadInput.addEventListener('input', () => {
-            const length = payloadInput.value.length;
-            charCounter.innerText = `${length.toLocaleString()} / ${MAX_CAPACITY.toLocaleString()} chars`;
+        // Tracks dynamic layout size rules on user typing streams
+        function trackCapacityUsage() {
+            const dynamicLength = dataInput.value.length + schemaInput.value.length;
+            charCounter.innerText = `${dynamicLength.toLocaleString()} / ${MAX_CAPACITY.toLocaleString()} chars`;
             
-            if (length > MAX_CAPACITY) {
+            if (dynamicLength > MAX_CAPACITY) {
                 charCounter.classList.add('warning');
                 transformBtn.disabled = true;
                 statusLabel.innerText = "Payload exceeds capacity";
@@ -261,14 +290,37 @@
                 statusLabel.innerText = "System Ready";
                 statusLight.className = "status-light idle";
             }
-        });
+        }
 
-        // Trigger network execution loop
+        dataInput.addEventListener('input', trackCapacityUsage);
+        schemaInput.addEventListener('input', trackCapacityUsage);
+
+        // Network Execution Request Loop
         transformBtn.addEventListener('click', async () => {
-            const payloadData = payloadInput.value.trim();
+            const dataRaw = dataInput.value.trim();
+            const schemaRaw = schemaInput.value.trim();
             
-            if (!payloadData) {
-                alert('Please provide an input payload.');
+            if (!dataRaw || !schemaRaw) {
+                alert('Please provide both raw dictionary data and a mapping configuration.');
+                return;
+            }
+
+            // JavaScript parsing guard ensures the values are clean JSON before hitting the network
+            let cleanDataObj, cleanSchemaObj;
+            try {
+                cleanDataObj = JSON.parse(dataRaw);
+            } catch (e) {
+                alert('Error parsing Input Data: Please verify it is a valid JSON object structure.');
+                return;
+            }
+
+            try {
+                cleanSchemaObj = JSON.parse(schemaRaw);
+                if (!Array.isArray(cleanSchemaObj)) {
+                    throw new Error("Schema rules must be a JSON array block.");
+                }
+            } catch (e) {
+                alert('Error parsing Transformation Blueprint: Please verify it is a valid JSON Array list ([...]).');
                 return;
             }
 
@@ -287,27 +339,32 @@
                     headers: { 
                         'Content-Type': 'application/json' 
                     },
-                    body: JSON.stringify({ payload: payloadData })
+                    body: JSON.stringify({ 
+                        data: cleanDataObj, 
+                        schema_config: cleanSchemaObj 
+                    })
                 });
                 
-                if (!response.ok) throw new Error('Appliance processing error');
+                const responseBody = await response.json();
                 
-                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(responseBody.detail || 'Appliance engine processing fault.');
+                }
                 
                 // Transition interface state to Complete
                 statusLight.className = 'status-light complete';
                 statusLabel.innerText = 'Execution Complete';
                 
-                // Render exact decrypted text engine response payload
+                // Render structural response back onto display pre block
                 outputContainer.style.color = '#ffffff';
-                outputContainer.innerText = data.result; 
+                outputContainer.innerText = JSON.stringify(responseBody, null, 2); 
 
             } catch (err) {
                 // UI Fault Isolation Routing
                 statusLight.className = 'status-light error';
                 statusLabel.innerText = 'Processing Fault';
                 outputContainer.style.color = 'var(--error-color)';
-                outputContainer.innerText = 'System error encountered during server isolation execution.';
+                outputContainer.innerText = `[Engine Isolation Error]\n${err.message}`;
                 console.error('Pipeline Fault Detected:', err);
             } finally {
                 // Restabilize components
@@ -316,16 +373,16 @@
             }
         });
 
-        // Drag & Drop File Ingestion Functionality
-        payloadInput.addEventListener('dragover', (e) => { e.preventDefault(); });
-        payloadInput.addEventListener('drop', (e) => {
+        // Setup File Drop Hooks for Data Input Textarea
+        dataInput.addEventListener('dragover', (e) => { e.preventDefault(); });
+        dataInput.addEventListener('drop', (e) => {
             e.preventDefault();
             const file = e.dataTransfer.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = (event) => {
-                    payloadInput.value = event.target.result;
-                    payloadInput.dispatchEvent(new Event('input')); // Recalculate capacity counter
+                    dataInput.value = event.target.result;
+                    trackCapacityUsage();
                 };
                 reader.readAsText(file);
             }
