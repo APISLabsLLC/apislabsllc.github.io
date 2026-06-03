@@ -702,20 +702,21 @@
                     printLog("System alert: Runtime anomalies logged during processing matrix conversion pipelines.", "error");
                 }
 
+                // ==========================================
+                // 🛠️ UPDATED UI TELEMETRY UNPACKING LOGIC
+                // ==========================================
+
                 // Handle Alpha Telemetry Display
                 if (alphaRes.status === 'fulfilled') {
                     outputContainerA.style.color = '#ffffff';
                     let responseData = alphaRes.value;
                     
-                    // Unpack stringified result objects if echoed back as a string container
-                    if (responseData && responseData.result && typeof responseData.result === 'string') {
-                        try {
-                            responseData.result = JSON.parse(responseData.result);
-                        } catch (e) {
-                            console.log("Alpha response result property contains native plain text string.");
-                        }
+                    // Check for standard enterprise layout schema keys
+                    if (responseData && responseData.transformed_data) {
+                        outputContainerA.innerText = JSON.stringify(responseData.transformed_data, null, 2);
+                    } else {
+                        outputContainerA.innerText = JSON.stringify(responseData, null, 2);
                     }
-                    outputContainerA.innerText = JSON.stringify(responseData, null, 2);
                     printLog("Alpha monitor telemetry updated successfully.", "success");
                 } else {
                     outputContainerA.style.color = 'var(--error-color)';
@@ -728,15 +729,12 @@
                     outputContainerB.style.color = '#ffffff';
                     let responseData = betaRes.value;
                     
-                    // Unpack stringified result objects if echoed back as a string container
-                    if (responseData && responseData.result && typeof responseData.result === 'string') {
-                        try {
-                            responseData.result = JSON.parse(responseData.result);
-                        } catch (e) {
-                            console.log("Beta response result property contains native plain text string.");
-                        }
+                    // Check for standard enterprise layout schema keys
+                    if (responseData && responseData.transformed_data) {
+                        outputContainerB.innerText = JSON.stringify(responseData.transformed_data, null, 2);
+                    } else {
+                        outputContainerB.innerText = JSON.stringify(responseData, null, 2);
                     }
-                    outputContainerB.innerText = JSON.stringify(responseData, null, 2);
                     printLog("Beta monitor telemetry updated successfully.", "success");
                 } else {
                     outputContainerB.style.color = 'var(--error-color)';
