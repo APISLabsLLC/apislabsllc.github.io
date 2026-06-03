@@ -120,10 +120,17 @@
             outline: none;
             box-sizing: border-box;
             overflow-y: auto;
+            transition: background-color 0.2s, border-color 0.2s;
         }
 
         textarea:focus {
             border-color: var(--accent-color);
+        }
+
+        textarea.drag-over {
+            background-color: #1f242c;
+            border-color: var(--accent-color);
+            border-style: dashed;
         }
 
         .output-view {
@@ -317,6 +324,56 @@
         }
 
         [dataInputA, schemaInputA, dataInputB, schemaInputB].forEach(el => el.addEventListener('input', checkAggregateCapacity));
+
+        // --- Drag and Drop File Ingestion Handler ---
+        const setupDragAndDrop = (textareaElement) => {
+            // Intercept browser default drop navigation
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                textareaElement.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }, false);
+            });
+
+            // Visual layout shifts on drag over
+            ['dragenter', 'dragover'].forEach(eventName => {
+                textareaElement.addEventListener(eventName, () => {
+                    textareaElement.classList.add('drag-over');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                textareaElement.addEventListener(eventName, () => {
+                    textareaElement.classList.remove('drag-over');
+                }, false);
+            });
+
+            // Read dropped file contents via background stream
+            textareaElement.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+
+                if (files.length > 0) {
+                    const file = files[0];
+                    
+                    if (file.type === "application/json" || file.name.endsWith('.json')) {
+                        const reader = new FileReader();
+                        
+                        reader.onload = (event) => {
+                            textareaElement.value = event.target.result;
+                            checkAggregateCapacity();
+                        };
+                        
+                        reader.readAsText(file);
+                    } else {
+                        alert("Demo Input Error: Please drop a valid .json file container.");
+                    }
+                }
+            });
+        };
+
+        // Apply drag-and-drop ingestion to all vector inputs
+        [dataInputA, schemaInputA, dataInputB, schemaInputB].forEach(setupDragAndDrop);
 
         // Isolated execution helper to trap errors per stream cleanly
         const runChannelPipeline = async (dataPayload, mappingPayload) => {
