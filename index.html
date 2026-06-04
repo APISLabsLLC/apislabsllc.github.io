@@ -51,7 +51,6 @@
             margin-bottom: 12px;
         }
 
-        /* Preset Sample Bar Styling */
         .preset-container {
             display: flex;
             justify-content: center;
@@ -172,7 +171,7 @@
             min-height: 0;
         }
 
-        textarea[id^="schemaInput"] {
+        textarea[id^="mappingInput"] {
             flex: 0.8;
             min-height: 0;
             margin-top: 6px;
@@ -381,7 +380,7 @@
             }
             .dashboard { 
                 height: auto; 
-            }
+                }
             .panel { 
                 height: 520px; 
             }
@@ -416,13 +415,13 @@
                 <div class="matrix-box">
                     <div class="matrix-label label-a">Matrix Alpha (Order Data)</div>
                     <textarea id="dataInputA" placeholder='{"orderId": "ORD-2026-99", "checkout_total": "1450.00", "item_count": "12"}'></textarea>
-                    <textarea id="schemaInputA" placeholder='[{"source_key": "orderId", "target_key": "transaction_id", "type": "string"}, {"source_key": "checkout_total", "target_key": "revenue_usd", "type": "float"}]'></textarea>
+                    <textarea id="mappingInputA" placeholder='[{"source_key": "orderId", "target_key": "transaction_id", "type": "string"}, {"source_key": "checkout_total", "target_key": "revenue_usd", "type": "float"}]'></textarea>
                 </div>
                 
                 <div class="matrix-box">
                     <div class="matrix-label label-b">Matrix Beta (Inventory Data)</div>
                     <textarea id="dataInputB" placeholder='{"TXN_NUM": 883201, "NET_AMT": "2900.50", "WHSE_QTY": 24.0}'></textarea>
-                    <textarea id="schemaInputB" placeholder='[{"source_key": "TXN_NUM", "target_key": "transaction_id", "type": "string"}, {"source_key": "NET_AMT", "target_key": "revenue_usd", "type": "float"}]'></textarea>
+                    <textarea id="mappingInputB" placeholder='[{"source_key": "TXN_NUM", "target_key": "transaction_id", "type": "string"}, {"source_key": "NET_AMT", "target_key": "revenue_usd", "type": "float"}]'></textarea>
                 </div>
             </div>
         </div>
@@ -465,9 +464,10 @@
 
     <script>
         const dataInputA = document.getElementById('dataInputA');
-        const schemaInputA = document.getElementById('schemaInputA');
+        // 🔄 TERMINOLOGY UPDATE: Variables map to the updated mapping elements
+        const mappingInputA = document.getElementById('mappingInputA');
         const dataInputB = document.getElementById('dataInputB');
-        const schemaInputB = document.getElementById('schemaInputB');
+        const mappingInputB = document.getElementById('mappingInputB');
         
         const charCounter = document.getElementById('charCounter');
         const transformBtn = document.getElementById('transformBtn');
@@ -487,24 +487,28 @@
         const testPresets = {
             retail: {
                 dataA: { "orderId": "ORD-2026-99", "checkout_total": "1450.00", "item_count": "12" },
-                schemaA: [
+                // 🔄 TERMINOLOGY UPDATE: key renamed to mappingA
+                mappingA: [
                     { "source_key": "orderId", "target_key": "transaction_id", "type": "string" }, 
                     { "source_key": "checkout_total", "target_key": "revenue_usd", "type": "float" }
                 ],
                 dataB: { "TXN_NUM": 883201, "NET_AMT": "2900.50", "WHSE_QTY": 24.0 },
-                schemaB: [
+                // 🔄 TERMINOLOGY UPDATE: key renamed to mappingB
+                mappingB: [
                     { "source_key": "TXN_NUM", "target_key": "transaction_id", "type": "string" }, 
                     { "source_key": "NET_AMT", "target_key": "revenue_usd", "type": "float" }
                 ]
             },
             logistics: {
                 dataA: { "Lead_ID": "00Q8000000amXYZ", "Annual_Revenue_Est": "500000", "Is_Enterprise_Tier": "1", "Account_Status": "Active_Contract" },
-                schemaA: [
+                // 🔄 TERMINOLOGY UPDATE: key renamed to mappingA
+                mappingA: [
                     { "source_key": "Annual_Revenue_Est", "target_key": "arr", "type": "int" },
                     { "source_key": "Is_Enterprise_Tier", "target_key": "is_enterprise", "type": "bool" }
                 ],
                 dataB: { "pallet_barcode": 44920194, "assigned_load_lbs": 9921, "manifest_locked": 1 },
-                schemaB: [
+                // 🔄 TERMINOLOGY UPDATE: key renamed to mappingB
+                mappingB: [
                     { "source_key": "assigned_load_lbs", "target_key": "metric_mass", "type": "float" },
                     { "source_key": "manifest_locked", "target_key": "cleared_flag", "type": "bool" }
                 ]
@@ -528,7 +532,7 @@
         }
 
         function checkAggregateCapacity() {
-            const currentSize = dataInputA.value.length + schemaInputA.value.length + dataInputB.value.length + schemaInputB.value.length;
+            const currentSize = dataInputA.value.length + mappingInputA.value.length + dataInputB.value.length + mappingInputB.value.length;
             charCounter.innerText = `${currentSize.toLocaleString()} / ${MAX_CAPACITY.toLocaleString()} chars`;
             
             if (currentSize > MAX_CAPACITY) {
@@ -549,9 +553,9 @@
             if (!suite) return;
 
             dataInputA.value = JSON.stringify(suite.dataA, null, 2);
-            schemaInputA.value = JSON.stringify(suite.schemaA, null, 2);
+            mappingInputA.value = JSON.stringify(suite.mappingA, null, 2);
             dataInputB.value = JSON.stringify(suite.dataB, null, 2);
-            schemaInputB.value = JSON.stringify(suite.schemaB, null, 2);
+            mappingInputB.value = JSON.stringify(suite.mappingB, null, 2);
 
             checkAggregateCapacity();
             printLog(`Injected integrated sample matrix suite: [${suiteKey.toUpperCase()}].`, "success");
@@ -560,7 +564,7 @@
         loadRetailPreset.addEventListener('click', () => loadPresetSuite('retail'));
         loadLogisticsPreset.addEventListener('click', () => loadPresetSuite('logistics'));
 
-        [dataInputA, schemaInputA, dataInputB, schemaInputB].forEach(el => el.addEventListener('input', checkAggregateCapacity));
+        [dataInputA, mappingInputA, dataInputB, mappingInputB].forEach(el => el.addEventListener('input', checkAggregateCapacity));
 
         const setupDragAndDrop = (textareaElement, labelContext) => {
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -606,11 +610,13 @@
         };
 
         setupDragAndDrop(dataInputA, "Alpha Vector Ingestion Data");
-        setupDragAndDrop(schemaInputA, "Alpha Vector Normalization Rules");
+        setupDragAndDrop(mappingInputA, "Alpha Vector Normalization Rules");
         setupDragAndDrop(dataInputB, "Beta Vector Ingestion Data");
-        setupDragAndDrop(schemaInputB, "Beta Vector Normalization Rules");
+        setupDragAndDrop(mappingInputB, "Beta Vector Normalization Rules");
 
         const runChannelPipeline = async (dataPayload, mappingPayload) => {
+            // 🛠️ FIXED: Double serialize into the internal string layout expected by main.py
+            // 🔄 TERMINOLOGY UPDATE: Inside the serialized payload, using key "mapping"
             const serializedInnerPayload = JSON.stringify({ 
                 data: dataPayload, 
                 mapping: mappingPayload 
@@ -622,13 +628,14 @@
                     'Content-Type': 'application/json',
                     'X-Demo-Token': 'apis-labs-sandbox-2026-secure'
                 },
+                // Matches the TransformationRequest Pydantic model structure
                 body: JSON.stringify({
                     payload: serializedInnerPayload
                 })
             });
             
             if (response.status === 429) {
-                throw { rateLimited: true, message: "Rate limit exceeded. Maximum 10 requests allowed per minute." };
+                throw { rateLimited: true, message: "Rate limit exceeded. Maximum 20 requests allowed per minute." };
             }
 
             const body = await response.json();
@@ -651,8 +658,8 @@
         };
 
         transformBtn.addEventListener('click', async () => {
-            const rawDA = scrubInputText(dataInputA.value); const rawSA = scrubInputText(schemaInputA.value);
-            const rawDB = scrubInputText(dataInputB.value); const rawSB = scrubInputText(schemaInputB.value);
+            const rawDA = scrubInputText(dataInputA.value); const rawSA = scrubInputText(mappingInputA.value);
+            const rawDB = scrubInputText(dataInputB.value); const rawSB = scrubInputText(mappingInputB.value);
 
             if (!rawDA || !rawSA || !rawDB || !rawSB) {
                 printLog("Execution halted: Empty parameters found on runtime vectors.", "warn");
