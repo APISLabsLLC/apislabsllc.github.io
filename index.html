@@ -660,7 +660,16 @@
             // Render Output Stream Alpha
             if (alphaRes.status === 'fulfilled') {
                 outputContainerA.style.color = '#ffffff';
-                outputContainerA.innerText = JSON.stringify(alphaRes.value.transformed_data || alphaRes.value, null, 2);
+                
+                // Unpack escaped engine response strings safely
+                let alphaOutputData = alphaRes.value;
+                if (alphaOutputData && typeof alphaOutputData.transformed_data === 'string') {
+                    try {
+                        alphaOutputData.transformed_data = JSON.parse(alphaOutputData.transformed_data);
+                    } catch(e) {}
+                }
+                
+                outputContainerA.innerText = JSON.stringify(alphaOutputData.transformed_data || alphaOutputData, null, 2);
                 printLog("Alpha monitor telemetry updated.", "success");
             } else {
                 outputContainerA.style.color = 'var(--error-color)';
@@ -671,7 +680,16 @@
             // Render Output Stream Beta
             if (betaRes.status === 'fulfilled') {
                 outputContainerB.style.color = '#ffffff';
-                outputContainerB.innerText = JSON.stringify(betaRes.value.transformed_data || betaRes.value, null, 2);
+                
+                // Unpack escaped engine response strings safely
+                let betaOutputData = betaRes.value;
+                if (betaOutputData && typeof betaOutputData.transformed_data === 'string') {
+                    try {
+                        betaOutputData.transformed_data = JSON.parse(betaOutputData.transformed_data);
+                    } catch(e) {}
+                }
+                
+                outputContainerB.innerText = JSON.stringify(betaOutputData.transformed_data || betaOutputData, null, 2);
                 printLog("Beta monitor telemetry updated.", "success");
             } else {
                 outputContainerB.style.color = 'var(--error-color)';
