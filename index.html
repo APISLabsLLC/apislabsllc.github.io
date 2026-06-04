@@ -462,316 +462,225 @@
         SYSTEM CONTACT // <a href="mailto:contact@apislabs.net">contact@apislabs.net</a>
     </footer>
 
-    <script>
-        const dataInputA = document.getElementById('dataInputA');
-        // 🔄 TERMINOLOGY UPDATE: Variables map to the updated mapping elements
-        const mappingInputA = document.getElementById('mappingInputA');
-        const dataInputB = document.getElementById('dataInputB');
-        const mappingInputB = document.getElementById('mappingInputB');
+<script>
+    const dataInputA = document.getElementById('dataInputA');
+    const mappingInputA = document.getElementById('mappingInputA');
+    const dataInputB = document.getElementById('dataInputB');
+    const mappingInputB = document.getElementById('mappingInputB');
+    
+    const charCounter = document.getElementById('charCounter');
+    const transformBtn = document.getElementById('transformBtn');
+    const applianceNode = document.getElementById('applianceNode');
+    const statusLight = document.getElementById('statusLight');
+    const statusLabel = document.getElementById('statusLabel');
+    
+    const outputContainerA = document.getElementById('outputContainerA');
+    const outputContainerB = document.getElementById('outputContainerB');
+    const consoleTerminal = document.getElementById('consoleTerminal');
+
+    const loadRetailPreset = document.getElementById('loadRetailPreset');
+    const loadLogisticsPreset = document.getElementById('loadLogisticsPreset');
+
+    const MAX_CAPACITY = 8000; 
+
+    // FIXED: Presets normalized so they serialize seamlessly into array structures
+    const testPresets = {
+        retail: {
+            dataA: { "orderId": "ORD-2026-99", "checkout_total": "1450.00", "item_count": "12" },
+            mappingA: [
+                { "source_key": "orderId", "target_key": "transaction_id", "type": "string" }, 
+                { "source_key": "checkout_total", "target_key": "revenue_usd", "type": "float" }
+            ],
+            dataB: { "TXN_NUM": 883201, "NET_AMT": "2900.50", "WHSE_QTY": 24.0 },
+            mappingB: [
+                { "source_key": "TXN_NUM", "target_key": "transaction_id", "type": "string" }, 
+                { "source_key": "NET_AMT", "target_key": "revenue_usd", "type": "float" }
+            ]
+        },
+        logistics: {
+            dataA: { "Lead_ID": "00Q8000000amXYZ", "Annual_Revenue_Est": "500000", "Is_Enterprise_Tier": "1", "Account_Status": "Active_Contract" },
+            mappingA: [
+                { "source_key": "Annual_Revenue_Est", "target_key": "arr", "type": "int" },
+                { "source_key": "Is_Enterprise_Tier", "target_key": "is_enterprise", "type": "bool" }
+            ],
+            dataB: { "pallet_barcode": 44920194, "assigned_load_lbs": 9921, "manifest_locked": 1 },
+            mappingB: [
+                { "source_key": "assigned_load_lbs", "target_key": "metric_mass", "type": "float" },
+                { "source_key": "manifest_locked", "target_key": "cleared_flag", "type": "bool" }
+            ]
+        }
+    };
+
+    function printLog(message, type = 'info') {
+        const timestamp = new Date().toLocaleTimeString();
+        const logLine = document.createElement('div');
+        logLine.className = `log-entry ${type}`;
+        logLine.innerText = `[${timestamp}] ${message}`;
+        consoleTerminal.appendChild(logLine);
+        consoleTerminal.scrollTop = consoleTerminal.scrollHeight;
+    }
+
+    printLog("System initialized. Sandbox routing prepared.", "info");
+
+    function scrubInputText(text) {
+        return text.replace(/^(Data Object:\s*|Rules Array:\s*)/i, '').trim();
+    }
+
+    function checkAggregateCapacity() {
+        const currentSize = dataInputA.value.length + mappingInputA.value.length + dataInputB.value.length + mappingInputB.value.length;
+        charCounter.innerText = `${currentSize.toLocaleString()} / ${MAX_CAPACITY.toLocaleString()} chars`;
         
-        const charCounter = document.getElementById('charCounter');
-        const transformBtn = document.getElementById('transformBtn');
-        const applianceNode = document.getElementById('applianceNode');
-        const statusLight = document.getElementById('statusLight');
-        const statusLabel = document.getElementById('statusLabel');
-        
-        const outputContainerA = document.getElementById('outputContainerA');
-        const outputContainerB = document.getElementById('outputContainerB');
-        const consoleTerminal = document.getElementById('consoleTerminal');
-
-        const loadRetailPreset = document.getElementById('loadRetailPreset');
-        const loadLogisticsPreset = document.getElementById('loadLogisticsPreset');
-
-        const MAX_CAPACITY = 8000; 
-
-        const testPresets = {
-            retail: {
-                dataA: { "orderId": "ORD-2026-99", "checkout_total": "1450.00", "item_count": "12" },
-                // 🔄 TERMINOLOGY UPDATE: key renamed to mappingA
-                mappingA: [
-                    { "source_key": "orderId", "target_key": "transaction_id", "type": "string" }, 
-                    { "source_key": "checkout_total", "target_key": "revenue_usd", "type": "float" }
-                ],
-                dataB: { "TXN_NUM": 883201, "NET_AMT": "2900.50", "WHSE_QTY": 24.0 },
-                // 🔄 TERMINOLOGY UPDATE: key renamed to mappingB
-                mappingB: [
-                    { "source_key": "TXN_NUM", "target_key": "transaction_id", "type": "string" }, 
-                    { "source_key": "NET_AMT", "target_key": "revenue_usd", "type": "float" }
-                ]
-            },
-            logistics: {
-                dataA: { "Lead_ID": "00Q8000000amXYZ", "Annual_Revenue_Est": "500000", "Is_Enterprise_Tier": "1", "Account_Status": "Active_Contract" },
-                // 🔄 TERMINOLOGY UPDATE: key renamed to mappingA
-                mappingA: [
-                    { "source_key": "Annual_Revenue_Est", "target_key": "arr", "type": "int" },
-                    { "source_key": "Is_Enterprise_Tier", "target_key": "is_enterprise", "type": "bool" }
-                ],
-                dataB: { "pallet_barcode": 44920194, "assigned_load_lbs": 9921, "manifest_locked": 1 },
-                // 🔄 TERMINOLOGY UPDATE: key renamed to mappingB
-                mappingB: [
-                    { "source_key": "assigned_load_lbs", "target_key": "metric_mass", "type": "float" },
-                    { "source_key": "manifest_locked", "target_key": "cleared_flag", "type": "bool" }
-                ]
-            }
-        };
-
-        function printLog(message, type = 'info') {
-            const timestamp = new Date().toLocaleTimeString();
-            const logLine = document.createElement('div');
-            logLine.className = `log-entry ${type}`;
-            logLine.innerText = `[${timestamp}] ${message}`;
-            consoleTerminal.appendChild(logLine);
-            consoleTerminal.scrollTop = consoleTerminal.scrollHeight;
-        }
-
-        printLog("System initialized. Local proxy pipeline looking up remote cluster.", "info");
-        printLog("Awaiting data payload injection arrays...", "accent");
-
-        function scrubInputText(text) {
-            return text.replace(/^(Data Object:\s*|Rules Array:\s*)/i, '').trim();
-        }
-
-        function checkAggregateCapacity() {
-            const currentSize = dataInputA.value.length + mappingInputA.value.length + dataInputB.value.length + mappingInputB.value.length;
-            charCounter.innerText = `${currentSize.toLocaleString()} / ${MAX_CAPACITY.toLocaleString()} chars`;
-            
-            if (currentSize > MAX_CAPACITY) {
-                charCounter.classList.add('warning');
-                transformBtn.disabled = true;
-                statusLabel.innerText = "Buffer capacity saturated";
-                statusLight.className = "status-light error";
-            } else {
-                charCounter.classList.remove('warning');
-                transformBtn.disabled = false;
-                statusLabel.innerText = "Dual Channels Ready";
-                statusLight.className = "status-light idle";
-            }
-        }
-
-        function loadPresetSuite(suiteKey) {
-            const suite = testPresets[suiteKey];
-            if (!suite) return;
-
-            dataInputA.value = JSON.stringify(suite.dataA, null, 2);
-            mappingInputA.value = JSON.stringify(suite.mappingA, null, 2);
-            dataInputB.value = JSON.stringify(suite.dataB, null, 2);
-            mappingInputB.value = JSON.stringify(suite.mappingB, null, 2);
-
-            checkAggregateCapacity();
-            printLog(`Injected integrated sample matrix suite: [${suiteKey.toUpperCase()}].`, "success");
-        }
-
-        loadRetailPreset.addEventListener('click', () => loadPresetSuite('retail'));
-        loadLogisticsPreset.addEventListener('click', () => loadPresetSuite('logistics'));
-
-        [dataInputA, mappingInputA, dataInputB, mappingInputB].forEach(el => el.addEventListener('input', checkAggregateCapacity));
-
-        const setupDragAndDrop = (textareaElement, labelContext) => {
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                textareaElement.addEventListener(eventName, (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }, false);
-            });
-
-            ['dragenter', 'dragover'].forEach(eventName => {
-                textareaElement.addEventListener(eventName, () => {
-                    textareaElement.classList.add('drag-over');
-                }, false);
-            });
-
-            ['dragleave', 'drop'].forEach(eventName => {
-                textareaElement.addEventListener(eventName, () => {
-                    textareaElement.classList.remove('drag-over');
-                }, false);
-            });
-
-            textareaElement.addEventListener('drop', (e) => {
-                const dt = e.dataTransfer;
-                const files = dt.files;
-
-                if (files.length > 0) {
-                    const file = files[0];
-                    if (file.type === "application/json" || file.name.endsWith('.json')) {
-                        const reader = new FileReader();
-                        reader.onload = (event) => {
-                            let textContent = event.target.result;
-                            textareaElement.value = scrubInputText(textContent);
-                            checkAggregateCapacity();
-                            printLog(`Ingested filesystem node: "${file.name}" into ${labelContext}.`, "success");
-                        };
-                        reader.readAsText(file);
-                    } else {
-                        printLog(`Rejection notice: File "${file.name}" must be valid JSON layout syntax.`, "error");
-                        alert("Demo Input Error: Please drop a valid .json file container.");
-                    }
-                }
-            });
-        };
-
-        setupDragAndDrop(dataInputA, "Alpha Vector Ingestion Data");
-        setupDragAndDrop(mappingInputA, "Alpha Vector Normalization Rules");
-        setupDragAndDrop(dataInputB, "Beta Vector Ingestion Data");
-        setupDragAndDrop(mappingInputB, "Beta Vector Normalization Rules");
-
-        const runChannelPipeline = async (dataPayload, mappingPayload) => {
-            // 🛠️ FIXED: Double serialize into the internal string layout expected by main.py
-            // 🔄 TERMINOLOGY UPDATE: Inside the serialized payload, using key "mapping"
-            const serializedInnerPayload = JSON.stringify({ 
-                data: dataPayload, 
-                mapping: mappingPayload 
-            });
-
-            const response = await fetch('https://renderbackend-dnyz.onrender.com/v1/transform', {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'X-Demo-Token': 'apis-labs-sandbox-2026-secure'
-                },
-                // Matches the TransformationRequest Pydantic model structure
-                body: JSON.stringify({
-                    payload: serializedInnerPayload
-                })
-            });
-            
-            if (response.status === 429) {
-                throw { rateLimited: true, message: "Rate limit exceeded. Maximum 20 requests allowed per minute." };
-            }
-
-            const body = await response.json();
-            if (!response.ok) {
-                throw body;
-            }
-            return body;
-        };
-
-        const formatPipeError = (err) => {
-            if (err && err.rateLimited) {
-                return err.message;
-            }
-            if (err && Array.isArray(err.detail)) {
-                return err.detail.map(d => `[Field: ${d.loc.join('.')}] ${d.msg}`).join('\n');
-            } else if (err && err.detail) {
-                return typeof err.detail === 'string' ? err.detail : JSON.stringify(err.detail);
-            }
-            return err.message || JSON.stringify(err);
-        };
-
-        transformBtn.addEventListener('click', async () => {
-            const rawDA = scrubInputText(dataInputA.value); const rawSA = scrubInputText(mappingInputA.value);
-            const rawDB = scrubInputText(dataInputB.value); const rawSB = scrubInputText(mappingInputB.value);
-
-            if (!rawDA || !rawSA || !rawDB || !rawSB) {
-                printLog("Execution halted: Empty parameters found on runtime vectors.", "warn");
-                alert('Validation Alert: Please populate all data and configuration matrices for Alpha and Beta channels.');
-                return;
-            }
-
-            let objDA, objSA, objDB, objSB;
-            try {
-                objDA = JSON.parse(rawDA); objSA = JSON.parse(rawSA);
-                objDB = JSON.parse(rawDB); objSB = JSON.parse(rawSB);
-            } catch (err) {
-                printLog(`JSON parsing failure: Structural defect -> ${err.message}`, "error");
-                alert(`JSON Structural Parse Exception: Check your commas or curly braces.\n${err.message}`);
-                return;
-            }
-
-            const cleanMappingA = Array.isArray(objSA) ? objSA.map(r => ({
-                source_key: String(r.source_key || ''),
-                target_key: String(r.target_key || ''),
-                type: String(r.type || 'string')
-            })) : [];
-
-            const cleanMappingB = Array.isArray(objSB) ? objSB.map(r => ({
-                source_key: String(r.source_key || ''),
-                target_key: String(r.target_key || ''),
-                type: String(r.type || 'string')
-            })) : [];
-
+        if (currentSize > MAX_CAPACITY) {
+            charCounter.classList.add('warning');
             transformBtn.disabled = true;
-            applianceNode.classList.add('processing');
-            statusLight.className = 'status-light active';
-            statusLabel.innerText = 'Resolving simultaneous execution blocks...';
-            
-            outputContainerA.style.color = 'var(--matrix-a-color)';
-            outputContainerB.style.color = 'var(--matrix-b-color)';
-            outputContainerA.innerText = 'Processing Channel Alpha...';
-            outputContainerB.innerText = 'Processing Channel Beta...';
+            statusLabel.innerText = "Buffer capacity saturated";
+            statusLight.className = "status-light error";
+        } else {
+            charCounter.classList.remove('warning');
+            transformBtn.disabled = false;
+            statusLabel.innerText = "Dual Channels Ready";
+            statusLight.className = "status-light idle";
+        }
+    }
 
-            printLog("Dispatched parallel execution requests to Render cluster nodes.", "accent");
-            printLog("Channel Alpha -> Initializing property map tasks...", "info");
-            printLog("Channel Beta -> Initializing catalog configuration profiles...", "info");
+    function loadPresetSuite(suiteKey) {
+        const suite = testPresets[suiteKey];
+        if (!suite) return;
 
-            try {
-                const results = await Promise.allSettled([
-                    runChannelPipeline(objDA, cleanMappingA),
-                    runChannelPipeline(objDB, cleanMappingB)
-                ]);
+        dataInputA.value = JSON.stringify(suite.dataA, null, 2);
+        mappingInputA.value = JSON.stringify(suite.mappingA, null, 2);
+        dataInputB.value = JSON.stringify(suite.dataB, null, 2);
+        mappingInputB.value = JSON.stringify(suite.mappingB, null, 2);
 
-                const alphaRes = results[0];
-                const betaRes = results[1];
+        checkAggregateCapacity();
+        printLog(`Injected sample data matrix suite: [${suiteKey.toUpperCase()}].`, "success");
+    }
 
-                const isAlphaRate = alphaRes.status === 'rejected' && alphaRes.reason.rateLimited;
-                const isBetaRate = betaRes.status === 'rejected' && betaRes.reason.rateLimited;
+    loadRetailPreset.addEventListener('click', () => loadPresetSuite('retail'));
+    loadLogisticsPreset.addEventListener('click', () => loadPresetSuite('logistics'));
 
-                if (isAlphaRate || isBetaRate) {
-                    statusLight.className = 'status-light error';
-                    statusLabel.innerText = 'Throttled (HTTP 429)';
-                    printLog("System alert: API rate monitoring rules blocked processing arrays.", "warn");
-                } else if (alphaRes.status === 'fulfilled' && betaRes.status === 'fulfilled') {
-                    statusLight.className = 'status-light complete';
-                    statusLabel.innerText = 'Dual Streams Complete';
-                    printLog("Simultaneous task arrays returned success metrics.", "success");
-                } else {
-                    statusLight.className = 'status-light error';
-                    statusLabel.innerText = 'Channel Pipeline Fault';
-                    printLog("System alert: Runtime anomalies logged during processing matrix conversion pipelines.", "error");
-                }
+    [dataInputA, mappingInputA, dataInputB, mappingInputB].forEach(el => el.addEventListener('input', checkAggregateCapacity));
 
-                // Handle Alpha Telemetry Display
-                if (alphaRes.status === 'fulfilled') {
-                    outputContainerA.style.color = '#ffffff';
-                    let responseData = alphaRes.value;
-                    
-                    if (responseData && responseData.transformed_data) {
-                        outputContainerA.innerText = JSON.stringify(responseData.transformed_data, null, 2);
-                    } else {
-                        outputContainerA.innerText = JSON.stringify(responseData, null, 2);
-                    }
-                    printLog("Alpha monitor telemetry updated successfully.", "success");
-                } else {
-                    outputContainerA.style.color = 'var(--error-color)';
-                    outputContainerA.innerText = `[Isolation Failure Engine Fault]\n${formatPipeError(alphaRes.reason)}`;
-                    printLog(`Channel Alpha Engine Failure Trace: ${formatPipeError(alphaRes.reason)}`, "error");
-                }
-
-                // Handle Beta Telemetry Display
-                if (betaRes.status === 'fulfilled') {
-                    outputContainerB.style.color = '#ffffff';
-                    let responseData = betaRes.value;
-                    
-                    if (responseData && responseData.transformed_data) {
-                        outputContainerB.innerText = JSON.stringify(responseData.transformed_data, null, 2);
-                    } else {
-                        outputContainerB.innerText = JSON.stringify(responseData, null, 2);
-                    }
-                    printLog("Beta monitor telemetry updated successfully.", "success");
-                } else {
-                    outputContainerB.style.color = 'var(--error-color)';
-                    outputContainerB.innerText = `[Isolation Failure Engine Fault]\n${formatPipeError(betaRes.reason)}`;
-                    printLog(`Channel Beta Engine Failure Trace: ${formatPipeError(betaRes.reason)}`, "error");
-                }
-
-            } catch (globalErr) {
-                statusLight.className = 'status-light error';
-                statusLabel.innerText = 'Critical Execution Error';
-                printLog(`Unexpected Thread Failure: ${globalErr.message}`, "error");
-            } finally {
-                transformBtn.disabled = false;
-                applianceNode.classList.remove('processing');
-            }
+    const runChannelPipeline = async (dataPayload, mappingPayload) => {
+        // FIXED: Using "schema_config" instead of "mapping" to align with your FastAPI Pydantic architecture
+        const serializedInnerPayload = JSON.stringify({ 
+            data: dataPayload, 
+            schema_config: mappingPayload 
         });
-    </script>
+
+        const response = await fetch('https://renderbackend-dnyz.onrender.com/v1/transform', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-Demo-Token': 'apis-labs-sandbox-2026-secure'
+            },
+            body: JSON.stringify({
+                payload: serializedInnerPayload
+            })
+        });
+        
+        if (response.status === 429) {
+            throw { rateLimited: true, message: "Rate limit exceeded. Maximum 20 requests allowed per minute." };
+        }
+
+        const body = await response.json();
+        if (!response.ok) {
+            throw body;
+        }
+        return body;
+    };
+
+    const formatPipeError = (err) => {
+        if (err && err.rateLimited) return err.message;
+        if (err && Array.isArray(err.detail)) {
+            return err.detail.map(d => `[Field: ${d.loc.join('.')}] ${d.msg}`).join('\n');
+        } else if (err && err.detail) {
+            return typeof err.detail === 'string' ? err.detail : JSON.stringify(err.detail);
+        }
+        return err.message || JSON.stringify(err);
+    };
+
+    transformBtn.addEventListener('click', async () => {
+        const rawDA = scrubInputText(dataInputA.value); const rawSA = scrubInputText(mappingInputA.value);
+        const rawDB = scrubInputText(dataInputB.value); const rawSB = scrubInputText(mappingInputB.value);
+
+        if (!rawDA || !rawSA || !rawDB || !rawSB) {
+            printLog("Execution halted: Missing pipeline initialization vectors.", "warn");
+            alert('Validation Alert: Please populate all fields for both channels.');
+            return;
+        }
+
+        let objDA, objSA, objDB, objSB;
+        try {
+            objDA = JSON.parse(rawDA); objSA = JSON.parse(rawSA);
+            objDB = JSON.parse(rawDB); objSB = JSON.parse(rawSB);
+        } catch (err) {
+            printLog(`JSON syntax fault: ${err.message}`, "error");
+            alert(`JSON Structural Parse Exception: Check syntax trailing commas.\n${err.message}`);
+            return;
+        }
+
+        transformBtn.disabled = true;
+        applianceNode.classList.add('processing');
+        statusLight.className = 'status-light active';
+        statusLabel.innerText = 'Executing stream conversions...';
+        
+        outputContainerA.style.color = 'var(--matrix-a-color)';
+        outputContainerB.style.color = 'var(--matrix-b-color)';
+        outputContainerA.innerText = 'Processing Channel Alpha...';
+        outputContainerB.innerText = 'Processing Channel Beta...';
+
+        printLog("Dispatched processing frames to processing cluster.", "accent");
+
+        try {
+            const results = await Promise.allSettled([
+                runChannelPipeline(objDA, objSA),
+                runChannelPipeline(objDB, objSB)
+            ]);
+
+            const alphaRes = results[0];
+            const betaRes = results[1];
+
+            if (alphaRes.status === 'fulfilled' && betaRes.status === 'fulfilled') {
+                statusLight.className = 'status-light complete';
+                statusLabel.innerText = 'Dual Streams Normalized';
+                printLog("All processing threads completed safely.", "success");
+            } else {
+                statusLight.className = 'status-light error';
+                statusLabel.innerText = 'Pipeline Execution Fault';
+            }
+
+            // Render Output Stream Alpha
+            if (alphaRes.status === 'fulfilled') {
+                outputContainerA.style.color = '#ffffff';
+                outputContainerA.innerText = JSON.stringify(alphaRes.value.transformed_data || alphaRes.value, null, 2);
+                printLog("Alpha monitor telemetry updated.", "success");
+            } else {
+                outputContainerA.style.color = 'var(--error-color)';
+                outputContainerA.innerText = `[Engine Conversion Error]\n${formatPipeError(alphaRes.reason)}`;
+                printLog(`Alpha Pipeline Exception logged.`, "error");
+            }
+
+            // Render Output Stream Beta
+            if (betaRes.status === 'fulfilled') {
+                outputContainerB.style.color = '#ffffff';
+                outputContainerB.innerText = JSON.stringify(betaRes.value.transformed_data || betaRes.value, null, 2);
+                printLog("Beta monitor telemetry updated.", "success");
+            } else {
+                outputContainerB.style.color = 'var(--error-color)';
+                outputContainerB.innerText = `[Engine Conversion Error]\n${formatPipeError(betaRes.reason)}`;
+                printLog(`Beta Pipeline Exception logged.`, "error");
+            }
+
+        } catch (globalErr) {
+            statusLight.className = 'status-light error';
+            statusLabel.innerText = 'Critical Pipeline Drop';
+            printLog(`Unexpected thread failure: ${globalErr.message}`, "error");
+        } finally {
+            transformBtn.disabled = false;
+            applianceNode.classList.remove('processing');
+        }
+    });
+</script>
 </body>
 </html>
