@@ -567,8 +567,8 @@
     [dataInputA, mappingInputA, dataInputB, mappingInputB].forEach(el => el.addEventListener('input', checkAggregateCapacity));
 
 const runChannelPipeline = async (dataPayload, mappingPayload) => {
-        // Pass data and mapping cleanly at the root level of the JSON body
-        // to satisfy your FastAPI Pydantic schema validation.
+        // Flatten the structural payload directly to the root level 
+        // to line up with your FastAPI Pydantic schema keys
         const response = await fetch('https://renderbackend-dnyz.onrender.com/v1/transform', {
             method: 'POST',
             headers: { 
@@ -582,17 +582,20 @@ const runChannelPipeline = async (dataPayload, mappingPayload) => {
         });
         
         if (response.status === 429) {
-            throw { rateLimited: true, message: "Rate limit exceeded." };
+            throw { message: "Rate limit exceeded." };
         }
 
         const body = await response.json();
         if (!response.ok) {
-            // Throw the explicit validation message from the server 
-            // instead of a generic network error string
-            throw new Error(body.detail || "Server validation exception.");
+            // If the server rejects the schema structure, throw the actual detail array
+            // returned by FastAPI's validation framework
+            throw { 
+                serverError: true, 
+                message: body.detail ? JSON.stringify(body.detail) : "Server Validation Exception" 
+            };
         }
 
-        // Navigate response properties depending on your engine's precise key
+        // Navigate response dictionary parameters depending on your backend keys
         if (body && body.transformed_data) {
             return body.transformed_data;
         } else if (body && body.result) {
@@ -622,23 +625,14 @@ const runChannelPipeline = async (dataPayload, mappingPayload) => {
             const rawMapB = JSON.parse(scrubInputText(mappingInputB.value));
 
             // Execute concurrent asynchronous stream transformations
-            let [resultA, resultB] = await Promise.all([
+            const [resultA, resultB] = await Promise.all([
                 runChannelPipeline(rawDataA, rawMapA),
                 runChannelPipeline(rawDataB, rawMapB)
             ]);
 
-            // Clean-up parsing check: If the engine returned its fallback string 
-            // inside result, cleanly parse it to an object so it renders beautifully
-            if (typeof resultA === 'string') {
-                try { resultA = JSON.parse(resultA.replace(/^[^\s\S]*?({[\s\S]*})[^\s\S]*$/, '$1')); } catch(e){}
-            }
-            if (typeof resultB === 'string') {
-                try { resultB = JSON.parse(resultB.replace(/^[^\s\S]*?({[\s\S]*})[^\s\S]*$/, '$1')); } catch(e){}
-            }
-
             // Render pristine output signatures directly to monitors
-            outputContainerA.innerText = typeof resultA === 'object' ? JSON.stringify(resultA, null, 2) : resultA;
-            outputContainerB.innerText = typeof resultB === 'object' ? JSON.stringify(resultB, null, 2) : resultB;
+            outputContainerA.innerText = JSON.stringify(resultA, null, 2);
+            outputContainerB.innerText = JSON.stringify(resultB, null, 2);
 
             printLog("All processing threads completed safely.", "success");
             printLog("Alpha monitor telemetry updated.", "success");
@@ -649,7 +643,11 @@ const runChannelPipeline = async (dataPayload, mappingPayload) => {
 
         } catch (error) {
             console.error("Pipeline processing failure:", error);
-            printLog(`Pipeline Execution Fault: ${error.message || "Invalid payload structure or network timeout."}`, "error");
+            
+            // Safely extract the literal message text instead of appending the raw object instance
+            const failureMessage = error && error.message ? error.message : "Invalid payload syntax or connection drop.";
+            
+            printLog(`Pipeline Execution Fault: ${failureMessage}`, "error");
             statusLabel.innerText = "Execution Exception";
             statusLight.className = "status-light error";
         } finally {
