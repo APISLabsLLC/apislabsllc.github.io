@@ -566,6 +566,89 @@
 
     [dataInputA, mappingInputA, dataInputB, mappingInputB].forEach(el => el.addEventListener('input', checkAggregateCapacity));
 
+    const runChannelPipeline = async (dataPayload, mappingPayload) => {
+        // Explicitly format the structural payload into the exact object 
+        // properties your FastAPI Pydantic schema expects for conversion
+        const pipelinePayload = {
+            data: dataPayload,
+            mapping: mappingPayload
+        };
+
+        const response = await fetch('https://renderbackend-dnyz.onrender.com/v1/transform', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-Demo-Token': 'apis-labs-sandbox-2026-secure'
+            },
+            body: JSON.stringify({
+                payload: JSON.stringify(pipelinePayload)
+            })
+        });
+        
+        if (response.status === 429) {
+            throw { rateLimited: true, message: "Rate limit exceeded." };
+        }
+
+        const body = await response.json();
+        if (!response.ok) {
+            throw body;
+        }
+
+        // Extract and return the parsed result from the appliance engine loop
+        if (body && body.transformed_data) {
+            return body.transformed_data;
+        } else if (body && body.result) {
+            return body.result;
+        }
+        
+        return body;
+    };
+
+    // Execution trigger for the UI dashboard engine 
+    transformBtn.addEventListener('click', async () => {
+        try {
+            // Set UI to processing status
+            transformBtn.disabled = true;
+            statusLight.className = "status-light processing";
+            statusLabel.innerText = "Processing Streams...";
+            applianceNode.classList.add('active-pulse');
+
+            printLog("Dispatched processing frames to processing cluster.", "info");
+
+            // Extract values and clean up if any extraneous labels exist
+            const rawDataA = JSON.parse(scrubInputText(dataInputA.value));
+            const rawMapA = JSON.parse(scrubInputText(mappingInputA.value));
+            const rawDataB = JSON.parse(scrubInputText(dataInputB.value));
+            const rawMapB = JSON.parse(scrubInputText(mappingInputB.value));
+
+            // Execute concurrent asynchronous stream transformations
+            const [resultA, resultB] = await Promise.all([
+                runChannelPipeline(rawDataA, rawMapA),
+                runChannelPipeline(rawDataB, rawMapB)
+            ]);
+
+            // Render pristine output signatures directly to monitors
+            outputContainerA.innerText = JSON.stringify(resultA, null, 2);
+            outputContainerB.innerText = JSON.stringify(resultB, null, 2);
+
+            printLog("All processing threads completed safely.", "success");
+            printLog("Alpha monitor telemetry updated.", "success");
+            printLog("Beta monitor telemetry updated.", "success");
+
+            statusLabel.innerText = "Streams Normalized";
+            statusLight.className = "status-light success";
+
+        } catch (error) {
+            console.error("Pipeline processing failure:", error);
+            printLog(`Pipeline Execution Fault: ${error.message || "Invalid payload structure or network timeout."}`, "error");
+            statusLabel.innerText = "Execution Exception";
+            statusLight.className = "status-light error";
+        } finally {
+            transformBtn.disabled = false;
+            applianceNode.classList.remove('active-pulse');
+        }
+    });
+</script>
 const runChannelPipeline = async (dataPayload, mappingPayload) => {
         const serializedInnerPayload = JSON.stringify({ 
             data: dataPayload, 
