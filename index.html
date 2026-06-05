@@ -567,18 +567,22 @@
     [dataInputA, mappingInputA, dataInputB, mappingInputB].forEach(el => el.addEventListener('input', checkAggregateCapacity));
 
 const runChannelPipeline = async (dataPayload, mappingPayload) => {
-        // Send the plain objects directly. FastAPI's Pydantic model will automatically
-        // bind these to a proper schema (e.g., class TransformRequest(BaseModel): data: dict, mapping: list)
+        // Wrap the parameters inside a 'payload' property as a clean nested object,
+        // rather than double-serializing it into a flat string.
+        const structuralPayload = {
+            payload: {
+                data: dataPayload,
+                mapping: mappingPayload
+            }
+        };
+
         const response = await fetch('https://renderbackend-dnyz.onrender.com/v1/transform', {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
                 'X-Demo-Token': 'apis-labs-sandbox-2026-secure'
             },
-            body: JSON.stringify({
-                data: dataPayload,
-                mapping: mappingPayload
-            })
+            body: JSON.stringify(structuralPayload)
         });
         
         if (response.status === 429) {
@@ -590,7 +594,7 @@ const runChannelPipeline = async (dataPayload, mappingPayload) => {
             throw body;
         }
 
-        // Check all common response keys your backend might be returning
+        // Navigate the return payload cleanly based on your backend engine's keys
         if (body && body.transformed_data) {
             return body.transformed_data;
         } else if (body && body.result) {
@@ -620,14 +624,23 @@ const runChannelPipeline = async (dataPayload, mappingPayload) => {
             const rawMapB = JSON.parse(scrubInputText(mappingInputB.value));
 
             // Execute concurrent asynchronous stream transformations
-            const [resultA, resultB] = await Promise.all([
+            let [resultA, resultB] = await Promise.all([
                 runChannelPipeline(rawDataA, rawMapA),
                 runChannelPipeline(rawDataB, rawMapB)
             ]);
 
+            // Clean-up parsing check: If the engine returned its fallback string 
+            // inside result, cleanly parse it to an object so it renders beautifully
+            if (typeof resultA === 'string') {
+                try { resultA = JSON.parse(resultA.replace(/^[^\s\S]*?({[\s\S]*})[^\s\S]*$/, '$1')); } catch(e){}
+            }
+            if (typeof resultB === 'string') {
+                try { resultB = JSON.parse(resultB.replace(/^[^\s\S]*?({[\s\S]*})[^\s\S]*$/, '$1')); } catch(e){}
+            }
+
             // Render pristine output signatures directly to monitors
-            outputContainerA.innerText = JSON.stringify(resultA, null, 2);
-            outputContainerB.innerText = JSON.stringify(resultB, null, 2);
+            outputContainerA.innerText = typeof resultA === 'object' ? JSON.stringify(resultA, null, 2) : resultA;
+            outputContainerB.innerText = typeof resultB === 'object' ? JSON.stringify(resultB, null, 2) : resultB;
 
             printLog("All processing threads completed safely.", "success");
             printLog("Alpha monitor telemetry updated.", "success");
