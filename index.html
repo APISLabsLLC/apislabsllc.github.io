@@ -609,7 +609,7 @@ const runChannelPipeline = async (dataPayload, mappingPayload) => {
         return err.message || JSON.stringify(err);
     };
 
-    transformBtn.addEventListener('click', async () => {
+transformBtn.addEventListener('click', async () => {
         const rawDA = scrubInputText(dataInputA.value); const rawSA = scrubInputText(mappingInputA.value);
         const rawDB = scrubInputText(dataInputB.value); const rawSB = scrubInputText(mappingInputB.value);
 
@@ -625,7 +625,7 @@ const runChannelPipeline = async (dataPayload, mappingPayload) => {
             objDB = JSON.parse(rawDB); objSB = JSON.parse(rawSB);
         } catch (err) {
             printLog(`JSON syntax fault: ${err.message}`, "error");
-            alert(`JSON Structural Parse Exception: Check syntax trailing commas.\n${err.message}`);
+            alert(`JSON Structural Parse Exception: Check syntax trailing commas.\\n${err.message}`);
             return;
         }
 
@@ -642,6 +642,7 @@ const runChannelPipeline = async (dataPayload, mappingPayload) => {
         printLog("Dispatched processing frames to processing cluster.", "accent");
 
         try {
+            // Evaluates whatever live values are typed into fields A and B dynamically
             const results = await Promise.allSettled([
                 runChannelPipeline(objDA, objSA),
                 runChannelPipeline(objDB, objSB)
@@ -659,43 +660,27 @@ const runChannelPipeline = async (dataPayload, mappingPayload) => {
                 statusLabel.innerText = 'Pipeline Execution Fault';
             }
 
-            // Render Output Stream Alpha
+            // Render Monitor Alpha Output (Pure Entity Output)
             if (alphaRes.status === 'fulfilled') {
                 outputContainerA.style.color = '#ffffff';
-                
-                // Unpack escaped engine response strings safely
-                let alphaOutputData = alphaRes.value;
-                if (alphaOutputData && typeof alphaOutputData.transformed_data === 'string') {
-                    try {
-                        alphaOutputData.transformed_data = JSON.parse(alphaOutputData.transformed_data);
-                    } catch(e) {}
-                }
-                
-                outputContainerA.innerText = JSON.stringify(alphaOutputData.transformed_data || alphaOutputData, null, 2);
+                // Render the clean, raw JSON response coming back from apis-labs-engine-core
+                outputContainerA.innerText = JSON.stringify(alphaRes.value, null, 2);
                 printLog("Alpha monitor telemetry updated.", "success");
             } else {
                 outputContainerA.style.color = 'var(--error-color)';
-                outputContainerA.innerText = `[Engine Conversion Error]\n${formatPipeError(alphaRes.reason)}`;
+                outputContainerA.innerText = `[Engine Conversion Error]\\n${formatPipeError(alphaRes.reason)}`;
                 printLog(`Alpha Pipeline Exception logged.`, "error");
             }
 
-            // Render Output Stream Beta
+            // Render Monitor Beta Output (Pure Entity Output)
             if (betaRes.status === 'fulfilled') {
                 outputContainerB.style.color = '#ffffff';
-                
-                // Unpack escaped engine response strings safely
-                let betaOutputData = betaRes.value;
-                if (betaOutputData && typeof betaOutputData.transformed_data === 'string') {
-                    try {
-                        betaOutputData.transformed_data = JSON.parse(betaOutputData.transformed_data);
-                    } catch(e) {}
-                }
-                
-                outputContainerB.innerText = JSON.stringify(betaOutputData.transformed_data || betaOutputData, null, 2);
+                // Render the clean, raw JSON response coming back from apis-labs-engine-core
+                outputContainerB.innerText = JSON.stringify(betaRes.value, null, 2);
                 printLog("Beta monitor telemetry updated.", "success");
             } else {
                 outputContainerB.style.color = 'var(--error-color)';
-                outputContainerB.innerText = `[Engine Conversion Error]\n${formatPipeError(betaRes.reason)}`;
+                outputContainerB.innerText = `[Engine Conversion Error]\\n${formatPipeError(betaRes.reason)}`;
                 printLog(`Beta Pipeline Exception logged.`, "error");
             }
 
