@@ -248,11 +248,11 @@
         }
 
         .status-light.idle { background-color: #8b949e; }
-        .status-light.active { 
+        .status-light.processing { 
             background-color: var(--accent-color); 
             animation: pulse 1s infinite alternate;
         }
-        .status-light.complete { background-color: var(--success-color); }
+        .status-light.success { background-color: var(--success-color); }
         .status-light.error { background-color: var(--error-color); }
 
         .machine-text {
@@ -566,7 +566,7 @@
 
     [dataInputA, mappingInputA, dataInputB, mappingInputB].forEach(el => el.addEventListener('input', checkAggregateCapacity));
 
-const runChannelPipeline = async (dataPayload, mappingPayload) => {
+    const runChannelPipeline = async (dataPayload, mappingPayload) => {
         // This structural match directly answers the exact schema requirement:
         // A root 'payload' object containing 'data' and 'mapping'.
         const payloadContainer = {
@@ -596,15 +596,8 @@ const runChannelPipeline = async (dataPayload, mappingPayload) => {
             };
         }
 
-        // Extract the parsed outcome from whichever key your engine populates
-        if (body && body.transformed_data) {
-            return body.transformed_data;
-        } else if (body && body.result) {
-            return body.result;
-        } else if (body && body.data) {
-            return body.data;
-        }
-        
+        // Return the full body response object so the extraction layer 
+        // can inspect its keys (.result, .transformed_data, etc.)
         return body;
     };
 
@@ -631,9 +624,42 @@ const runChannelPipeline = async (dataPayload, mappingPayload) => {
                 runChannelPipeline(rawDataB, rawMapB)
             ]);
 
+            // Helper function to intercept the backend's debug string fallback
+            // and parse the internal data back into a clean, readable object
+            const parseBackendResponse = (res) => {
+                if (!res) return {};
+                
+                // Case 1: If the backend returned its raw string wrapper inside .result
+                if (res.result && typeof res.result === 'string') {
+                    const stringData = res.result;
+                    const startIdx = stringData.indexOf('{');
+                    const endIdx = stringData.lastIndexOf('}');
+                    
+                    if (startIdx !== -1 && endIdx !== -1) {
+                        try {
+                            const cleanJsonString = stringData.substring(startIdx, endIdx + 1);
+                            return JSON.parse(cleanJsonString);
+                        } catch (parseError) {
+                            console.error("Fallback string parsing failed:", parseError);
+                        }
+                    }
+                    return stringData;
+                }
+                
+                // Case 2: Standard structured output variables
+                if (res.transformed_data) return res.transformed_data;
+                if (res.data) return res.data;
+                if (res.result) return res.result;
+                
+                return res;
+            };
+
+            const finalOutputA = parseBackendResponse(resultA);
+            const finalOutputB = parseBackendResponse(resultB);
+
             // Render pristine output signatures directly to monitors
-            outputContainerA.innerText = JSON.stringify(resultA, null, 2);
-            outputContainerB.innerText = JSON.stringify(resultB, null, 2);
+            outputContainerA.innerText = typeof finalOutputA === 'object' ? JSON.stringify(finalOutputA, null, 2) : finalOutputA;
+            outputContainerB.innerText = typeof finalOutputB === 'object' ? JSON.stringify(finalOutputB, null, 2) : finalOutputB;
 
             printLog("All processing threads completed safely.", "success");
             printLog("Alpha monitor telemetry updated.", "success");
