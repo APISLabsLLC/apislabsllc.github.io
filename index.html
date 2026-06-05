@@ -522,8 +522,6 @@
         logLine.className = `log-entry ${type}`;
         logLine.innerText = `[${timestamp}] ${message}`;
         consoleTerminal.appendChild(logLine);
-        
-        // Auto-scroll handler to ensure stream items scroll away smoothly
         consoleTerminal.scrollTop = consoleTerminal.scrollHeight;
     }
 
@@ -568,25 +566,22 @@
 
     [dataInputA, mappingInputA, dataInputB, mappingInputB].forEach(el => el.addEventListener('input', checkAggregateCapacity));
 
-const runChannelPipeline = async (dataPayload, mappingPayload) => {
-    const serializedInnerPayload = JSON.stringify({ 
-        data: dataPayload, 
-        mapping: mappingPayload 
-    });
+    const runChannelPipeline = async (dataPayload, mappingPayload) => {
+        const serializedInnerPayload = JSON.stringify({ 
+            data: dataPayload, 
+            mapping: mappingPayload 
+        });
 
-    // 🌐 Swap out the old 'renderbackend-dnyz' URL with your updated active Render URL:
-const response = await fetch('https://renderbackend-dnyz.onrender.com/v1/transform', {
-        method: 'POST',
-        headers: { 
-            'Content-Type': 'application/json',
-            'X-Demo-Token': 'apis-labs-sandbox-2026-secure'
-        },
-        body: JSON.stringify({
-            payload: serializedInnerPayload
-        })
-    });
-    
-    // ... rest of your code remains the same
+        const response = await fetch('https://renderbackend-dnyz.onrender.com/v1/transform', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-Demo-Token': 'apis-labs-sandbox-2026-secure'
+            },
+            body: JSON.stringify({
+                payload: serializedInnerPayload
+            })
+        });
         
         if (response.status === 429) {
             throw { rateLimited: true, message: "Rate limit exceeded. Maximum 20 requests allowed per minute." };
@@ -595,6 +590,15 @@ const response = await fetch('https://renderbackend-dnyz.onrender.com/v1/transfo
         const body = await response.json();
         if (!response.ok) {
             throw body;
+        }
+
+        // Check if the engine response content arrives double-serialized, and parse it if necessary
+        if (body && typeof body === 'string') {
+            try {
+                return JSON.parse(body);
+            } catch (e) {
+                return body;
+            }
         }
         return body;
     };
@@ -609,7 +613,7 @@ const response = await fetch('https://renderbackend-dnyz.onrender.com/v1/transfo
         return err.message || JSON.stringify(err);
     };
 
-transformBtn.addEventListener('click', async () => {
+    transformBtn.addEventListener('click', async () => {
         const rawDA = scrubInputText(dataInputA.value); const rawSA = scrubInputText(mappingInputA.value);
         const rawDB = scrubInputText(dataInputB.value); const rawSB = scrubInputText(mappingInputB.value);
 
@@ -625,7 +629,7 @@ transformBtn.addEventListener('click', async () => {
             objDB = JSON.parse(rawDB); objSB = JSON.parse(rawSB);
         } catch (err) {
             printLog(`JSON syntax fault: ${err.message}`, "error");
-            alert(`JSON Structural Parse Exception: Check syntax trailing commas.\\n${err.message}`);
+            alert(`JSON Structural Parse Exception: Check syntax trailing commas.\n${err.message}`);
             return;
         }
 
@@ -642,7 +646,6 @@ transformBtn.addEventListener('click', async () => {
         printLog("Dispatched processing frames to processing cluster.", "accent");
 
         try {
-            // Evaluates whatever live values are typed into fields A and B dynamically
             const results = await Promise.allSettled([
                 runChannelPipeline(objDA, objSA),
                 runChannelPipeline(objDB, objSB)
@@ -660,27 +663,23 @@ transformBtn.addEventListener('click', async () => {
                 statusLabel.innerText = 'Pipeline Execution Fault';
             }
 
-            // Render Monitor Alpha Output (Pure Entity Output)
             if (alphaRes.status === 'fulfilled') {
                 outputContainerA.style.color = '#ffffff';
-                // Render the clean, raw JSON response coming back from apis-labs-engine-core
                 outputContainerA.innerText = JSON.stringify(alphaRes.value, null, 2);
                 printLog("Alpha monitor telemetry updated.", "success");
             } else {
                 outputContainerA.style.color = 'var(--error-color)';
-                outputContainerA.innerText = `[Engine Conversion Error]\\n${formatPipeError(alphaRes.reason)}`;
+                outputContainerA.innerText = `[Engine Conversion Error]\n${formatPipeError(alphaRes.reason)}`;
                 printLog(`Alpha Pipeline Exception logged.`, "error");
             }
 
-            // Render Monitor Beta Output (Pure Entity Output)
             if (betaRes.status === 'fulfilled') {
                 outputContainerB.style.color = '#ffffff';
-                // Render the clean, raw JSON response coming back from apis-labs-engine-core
                 outputContainerB.innerText = JSON.stringify(betaRes.value, null, 2);
                 printLog("Beta monitor telemetry updated.", "success");
             } else {
                 outputContainerB.style.color = 'var(--error-color)';
-                outputContainerB.innerText = `[Engine Conversion Error]\\n${formatPipeError(betaRes.reason)}`;
+                outputContainerB.innerText = `[Engine Conversion Error]\n${formatPipeError(betaRes.reason)}`;
                 printLog(`Beta Pipeline Exception logged.`, "error");
             }
 
