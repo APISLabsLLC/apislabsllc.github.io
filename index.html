@@ -566,7 +566,7 @@
 
     [dataInputA, mappingInputA, dataInputB, mappingInputB].forEach(el => el.addEventListener('input', checkAggregateCapacity));
 
-    const runChannelPipeline = async (dataPayload, mappingPayload) => {
+const runChannelPipeline = async (dataPayload, mappingPayload) => {
         const serializedInnerPayload = JSON.stringify({ 
             data: dataPayload, 
             mapping: mappingPayload 
@@ -592,14 +592,18 @@
             throw body;
         }
 
-        // Check if the engine response content arrives double-serialized, and parse it if necessary
-        if (body && typeof body === 'string') {
-            try {
-                return JSON.parse(body);
-            } catch (e) {
-                return body;
-            }
+        // 🚀 FORCE STRIP legacy announcement wrappers if they exist in state properties
+        if (body && body.result && body.status === "success") {
+             try {
+                 // Fallback if an old cached worker responds with the text announcement
+                 const stripped = body.result.split("Payload Mirror:\n")[1];
+                 return JSON.parse(stripped);
+             } catch(e) {
+                 return body;
+             }
         }
+
+        // Return the clean naked JSON payload directly to the monitor renderer
         return body;
     };
 
