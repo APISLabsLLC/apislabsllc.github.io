@@ -566,14 +566,9 @@
 
     [dataInputA, mappingInputA, dataInputB, mappingInputB].forEach(el => el.addEventListener('input', checkAggregateCapacity));
 
-    const runChannelPipeline = async (dataPayload, mappingPayload) => {
-        // Explicitly format the structural payload into the exact object 
-        // properties your FastAPI Pydantic schema expects for conversion
-        const pipelinePayload = {
-            data: dataPayload,
-            mapping: mappingPayload
-        };
-
+const runChannelPipeline = async (dataPayload, mappingPayload) => {
+        // Send the plain objects directly. FastAPI's Pydantic model will automatically
+        // bind these to a proper schema (e.g., class TransformRequest(BaseModel): data: dict, mapping: list)
         const response = await fetch('https://renderbackend-dnyz.onrender.com/v1/transform', {
             method: 'POST',
             headers: { 
@@ -581,7 +576,8 @@
                 'X-Demo-Token': 'apis-labs-sandbox-2026-secure'
             },
             body: JSON.stringify({
-                payload: JSON.stringify(pipelinePayload)
+                data: dataPayload,
+                mapping: mappingPayload
             })
         });
         
@@ -594,11 +590,13 @@
             throw body;
         }
 
-        // Extract and return the parsed result from the appliance engine loop
+        // Check all common response keys your backend might be returning
         if (body && body.transformed_data) {
             return body.transformed_data;
         } else if (body && body.result) {
             return body.result;
+        } else if (body && body.data) {
+            return body.data;
         }
         
         return body;
