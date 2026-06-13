@@ -352,7 +352,13 @@
             color: #8b949e;
             text-transform: uppercase;
             letter-spacing: 0.05em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
+
+        .footer-left { text-align: left; }
+        .footer-right { text-align: right; }
 
         footer a {
             color: var(--accent-color);
@@ -364,6 +370,16 @@
         footer a:hover {
             color: #ffffff;
             text-decoration: underline;
+        }
+
+        /* Subtle styling for the counter metrics */
+        .telemetry-node {
+            color: #8b949e;
+            font-size: 0.7rem;
+        }
+        .telemetry-val {
+            color: var(--accent-color);
+            font-weight: bold;
         }
 
         @keyframes pulse {
@@ -393,6 +409,12 @@
                 height: auto; 
                 min-height: 480px; 
             }
+            footer {
+                flex-direction: column;
+                gap: 8px;
+                text-align: center;
+            }
+            .footer-left, .footer-right { text-align: center; }
         }
     </style>
 </head>
@@ -465,7 +487,13 @@
     </div>
 
     <footer>
-        SYSTEM CONTACT // <a href="mailto:contact@apislabs.net">contact@apislabs.net</a>
+        <div class="footer-left">
+            SYSTEM CONTACT // <a href="mailto:contact@apislabs.net">contact@apislabs.net</a>
+        </div>
+        <div class="footer-right telemetry-node" id="telemetryFooter">
+            NODE_LOC: <span class="telemetry-val" id="telemetryLoc">FETCHING...</span> | 
+            SYS_HITS: <span class="telemetry-val" id="telemetryHits">...</span>
+        </div>
     </footer>
 
 <script>
@@ -527,6 +555,46 @@
 
     printLog("System initialized. Sandbox routing prepared.", "info");
 
+    // Asynchronous Initialization Telemetry (Location + Unique Hit Counter)
+    async function initTelemetry() {
+        let locString = "UNKNOWN";
+        
+        // 1. Resolve Location Discretely via free, non-authenticated IP lookup
+        try {
+            const locResponse = await fetch('https://ipapi.co/json/');
+            if (locResponse.ok) {
+                const locData = await locResponse.json();
+                locString = `${locData.city || 'UNK'}, ${locData.region_code || 'XX'}`;
+                document.getElementById('telemetryLoc').innerText = locString.toUpperCase();
+                printLog(`Inbound connection frame verified from node [${locString}]`, 'info');
+            } else {
+                document.getElementById('telemetryLoc').innerText = "EXTERNAL";
+            }
+        } catch (e) {
+            document.getElementById('telemetryLoc').innerText = "OFFLINE";
+        }
+
+        // 2. Resolve Hit Counter via a free text/json counter API (CountAPI alternative)
+        // This utilizes a public namespace key specifically configured for this domain's analytics.
+        try {
+            const namespace = "apislabs_net";
+            const key = "demo_visits";
+            const countResponse = await fetch(`https://api.counterapi.dev/v1/${namespace}/${key}/increment`);
+            if (countResponse.ok) {
+                const countData = await countResponse.json();
+                document.getElementById('telemetryHits').innerText = countData.value.toLocaleString();
+                printLog(`Global telemetry sync sequence completed. Frame indices updated.`, 'accent');
+            } else {
+                document.getElementById('telemetryHits').innerText = "N/A";
+            }
+        } catch (err) {
+            document.getElementById('telemetryHits').innerText = "LOCAL_ONLY";
+        }
+    }
+
+    // Call telemetry on application runtime start
+    initTelemetry();
+
     function scrubInputText(text) {
         return text.replace(/^(Data Object:\s*|Rules Array:\s*)/i, '').trim();
     }
@@ -567,8 +635,6 @@
     [dataInputA, mappingInputA, dataInputB, mappingInputB].forEach(el => el.addEventListener('input', checkAggregateCapacity));
 
     const runChannelPipeline = async (dataPayload, mappingPayload) => {
-        // This structural match directly answers the exact schema requirement:
-        // A root 'payload' object containing 'data' and 'mapping'.
         const payloadContainer = {
             payload: {
                 data: dataPayload,
@@ -596,15 +662,11 @@
             };
         }
 
-        // Return the full body response object so the extraction layer 
-        // can inspect its keys (.result, .transformed_data, etc.)
         return body;
     };
 
-    // Execution trigger for the UI dashboard engine 
     transformBtn.addEventListener('click', async () => {
         try {
-            // Set UI to processing status
             transformBtn.disabled = true;
             statusLight.className = "status-light processing";
             statusLabel.innerText = "Processing Streams...";
@@ -612,24 +674,18 @@
 
             printLog("Dispatched processing frames to processing cluster.", "info");
 
-            // Extract values and clean up if any extraneous labels exist
             const rawDataA = JSON.parse(scrubInputText(dataInputA.value));
             const rawMapA = JSON.parse(scrubInputText(mappingInputA.value));
             const rawDataB = JSON.parse(scrubInputText(dataInputB.value));
             const rawMapB = JSON.parse(scrubInputText(mappingInputB.value));
 
-            // Execute concurrent asynchronous stream transformations
             const [resultA, resultB] = await Promise.all([
                 runChannelPipeline(rawDataA, rawMapA),
                 runChannelPipeline(rawDataB, rawMapB)
             ]);
 
-            // Helper function to intercept the backend's debug string fallback
-            // and parse the internal data back into a clean, readable object
             const parseBackendResponse = (res) => {
                 if (!res) return {};
-                
-                // Case 1: If the backend returned its raw string wrapper inside .result
                 if (res.result && typeof res.result === 'string') {
                     const stringData = res.result;
                     const startIdx = stringData.indexOf('{');
@@ -646,7 +702,6 @@
                     return stringData;
                 }
                 
-                // Case 2: Standard structured output variables
                 if (res.transformed_data) return res.transformed_data;
                 if (res.data) return res.data;
                 if (res.result) return res.result;
@@ -657,7 +712,6 @@
             const finalOutputA = parseBackendResponse(resultA);
             const finalOutputB = parseBackendResponse(resultB);
 
-            // Render pristine output signatures directly to monitors
             outputContainerA.innerText = typeof finalOutputA === 'object' ? JSON.stringify(finalOutputA, null, 2) : finalOutputA;
             outputContainerB.innerText = typeof finalOutputB === 'object' ? JSON.stringify(finalOutputB, null, 2) : finalOutputB;
 
@@ -670,8 +724,6 @@
 
         } catch (error) {
             console.error("Pipeline processing failure:", error);
-            
-            // Safely extract the literal message text instead of appending the raw object instance
             const failureMessage = error && error.message ? error.message : "Invalid payload syntax or connection drop.";
             
             printLog(`Pipeline Execution Fault: ${failureMessage}`, "error");
