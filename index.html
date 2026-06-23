@@ -16,6 +16,7 @@
             --matrix-a-color: #ff7b72;
             --matrix-b-color: #79c0ff;
             --console-bg: #010409;
+            --warning-bg: rgba(248, 81, 73, 0.1);
         }
 
         body {
@@ -25,7 +26,8 @@
             margin: 0;
             padding: 20px;
             box-sizing: border-box;
-            height: 100vh;
+            height: auto;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
@@ -87,6 +89,62 @@
         .btn-preset:hover {
             border-color: var(--accent-color);
             background-color: #30363d;
+            color: #ffffff;
+        }
+
+        /* Documentation Panel Styles */
+        .docs-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.2rem;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+
+        .docs-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .docs-grid { grid-template-columns: 1fr; }
+        }
+
+        .docs-section h3 {
+            color: #ffffff;
+            font-size: 0.95rem;
+            margin-top: 0;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .docs-section p, .docs-section li {
+            font-size: 0.85rem;
+            line-height: 1.45;
+            color: #8b949e;
+            margin-bottom: 8px;
+        }
+
+        .docs-section ol {
+            padding-left: 18px;
+            margin: 0;
+        }
+
+        .latency-warning {
+            grid-column: 1 / -1;
+            background: var(--warning-bg);
+            border: 1px solid var(--error-color);
+            border-radius: 6px;
+            padding: 10px 14px;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            color: #ff7b72;
+        }
+
+        .latency-warning strong {
             color: #ffffff;
         }
 
@@ -404,6 +462,26 @@
         </div>
     </header>
 
+    <div class="docs-panel">
+        <div class="docs-grid">
+            <div class="docs-section">
+                <h3>⚡ What It Does</h3>
+                <p>This engine acts as a concurrent data normalization layer. It ingests parallel JSON schemas (Matrix Alpha and Beta), executes complex mapping transformations asynchronously via a backend processing cluster, typecasts variables on the fly, and outputs matching structures instantly.</p>
+            </div>
+            <div class="docs-section">
+                <h3>📖 How To Use</h3>
+                <ol>
+                    <li>Click an **Inject Test Suite** preset button above to load mock schemas.</li>
+                    <li>Or, manually define raw JSON objects and matching rule mapping arrays.</li>
+                    <li>Click **Run Simultaneous Core →** to route data streams through the worker hub.</li>
+                </ol>
+            </div>
+            <div class="latency-warning">
+                ⏳ <strong>Performance Notice:</strong> The backend is deployed on a free-tier hosting node. If the service has been idle, the initial execution will incur an automated container cold-start delay of approximately <strong>30-50 seconds</strong>. Subsequent operations process instantly.
+            </div>
+        </div>
+    </div>
+
     <div class="dashboard">
         
         <div class="panel">
@@ -541,11 +619,9 @@
         }
     }
 
-    // Asynchronous Initialization Telemetry (Location + Unique Hit Counter)
     async function initTelemetry() {
         let locString = "UNKNOWN";
         
-        // 1. Resolve Location Discretely via free, non-authenticated IP lookup
         try {
             const locResponse = await fetch('https://ipapi.co/json/');
             if (locResponse.ok) {
@@ -560,7 +636,6 @@
             document.getElementById('telemetryLoc').innerText = "OFFLINE";
         }
 
-        // 2. Resolve Hit Counter via a free text/json counter API
         try {
             const namespace = "apislabs_net";
             const key = "demo_visits_2026"; 
@@ -588,7 +663,6 @@
         }
     }
 
-    // Call telemetry on application runtime start
     initTelemetry();
 
     function scrubInputText(text) {
