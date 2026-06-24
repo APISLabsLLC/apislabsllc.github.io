@@ -65,8 +65,9 @@
         .sdk-panel { padding: 2rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; max-width: 800px; margin: 0 auto; text-align: center; }
         
         /* Updated SDK Styles */
-        .sdk-panel h2 { text-transform: lowercase; }
+        .sdk-panel h2 { text-transform: none; } /* Standard capitalization */
         .sdk-panel p { color: #8b949e; }
+        .sdk-panel a { color: var(--accent-color); text-decoration: none; }
 
         /* Original Styles */
         .docs-panel { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.2rem; margin-bottom: 20px; }
@@ -99,7 +100,7 @@
         <h1>APIS Labs</h1>
         <div class="tagline">Core Technology Suite</div>
         <div class="preset-container">
-            <button class="btn-preset" id="viewToggle" onclick="toggleView()">Switch to: alcompress sdk</button>
+            <button class="btn-preset" id="viewToggle" onclick="toggleView()">Switch to: alcompress SDK</button>
         </div>
     </header>
 
@@ -140,8 +141,9 @@
 
     <div id="viewCompressor" class="view-content" style="display: none;">
         <div class="sdk-panel">
-            <h2>alcompress sdk</h2>
-            <p>deterministic 20-bit context-echo lattice compression for ultra-low latency environments.</p>
+            <h2>alcompress SDK</h2>
+            <p>Deterministic 20-bit context-echo lattice compression for ultra-low latency environments.</p>
+            <p><a href="https://github.com/orgs/APISLabsLLC/repositories" target="_blank">View Repository</a></p>
         </div>
     </div>
 
@@ -152,8 +154,15 @@
             const t = document.getElementById('viewTransformer');
             const c = document.getElementById('viewCompressor');
             const b = document.getElementById('viewToggle');
-            if (t.style.display === 'none') { t.style.display = 'block'; c.style.display = 'none'; b.innerText = "Switch to: alcompress sdk"; }
-            else { t.style.display = 'none'; c.style.display = 'block'; b.innerText = "Switch to: json transformer"; }
+            if (t.style.display === 'none') { 
+                t.style.display = 'block'; 
+                c.style.display = 'none'; 
+                b.innerText = "Switch to: alcompress SDK"; 
+            } else { 
+                t.style.display = 'none'; 
+                c.style.display = 'block'; 
+                b.innerText = "Switch to: JSON Transformer"; 
+            }
         }
 
         const dataInputA = document.getElementById('dataInputA');
