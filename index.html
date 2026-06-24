@@ -198,12 +198,6 @@
             border-color: var(--accent-color);
         }
 
-        textarea.drag-over {
-            background-color: #1f242c;
-            border-color: var(--accent-color);
-            border-style: dashed;
-        }
-
         .capacity-counter {
             font-size: 0.75rem;
             color: #8b949e;
@@ -231,11 +225,6 @@
             box-shadow: inset 0 0 20px rgba(0,0,0,0.6);
             transition: all 0.3s ease;
             margin-bottom: 14px;
-        }
-
-        .appliance-machine.processing {
-            border-color: var(--accent-color);
-            box-shadow: 0 0 20px rgba(88, 166, 255, 0.15), inset 0 0 20px rgba(88, 166, 255, 0.05);
         }
 
         .status-light {
@@ -329,8 +318,8 @@
             font-size: 0.75rem;
             line-height: 1.4;
             color: #79c0ff;
-            white-space: pre-wrap;    
-            word-break: break-all;    
+            white-space: pre-wrap;   
+            word-break: break-all;   
             text-align: left;
             box-sizing: border-box;
         }
@@ -352,7 +341,13 @@
             color: #8b949e;
             text-transform: uppercase;
             letter-spacing: 0.05em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
+
+        .footer-left { text-align: left; }
+        .footer-right { text-align: right; }
 
         footer a {
             color: var(--accent-color);
@@ -364,6 +359,15 @@
         footer a:hover {
             color: #ffffff;
             text-decoration: underline;
+        }
+
+        .telemetry-node {
+            color: #8b949e;
+            font-size: 0.7rem;
+        }
+        .telemetry-val {
+            color: var(--accent-color);
+            font-weight: bold;
         }
 
         @keyframes pulse {
@@ -378,21 +382,12 @@
         }
 
         @media (max-width: 1120px) {
-            body { 
-                height: auto; 
-                overflow-y: auto; 
-            }
-            .dashboard { 
-                height: auto; 
-            }
-            .panel { 
-                height: auto; 
-                min-height: 520px; 
-            }
-            .appliance-panel { 
-                height: auto; 
-                min-height: 480px; 
-            }
+            body { height: auto; overflow-y: auto; }
+            .dashboard { height: auto; }
+            .panel { height: auto; min-height: 520px; }
+            .appliance-panel { height: auto; min-height: 480px; }
+            footer { flex-direction: column; gap: 8px; text-align: center; }
+            .footer-left, .footer-right { text-align: center; }
         }
     </style>
 </head>
@@ -406,7 +401,6 @@
             <span class="preset-label">Inject Test Suite:</span>
             <button class="btn-preset" id="loadRetailPreset">E-Commerce Operations</button>
             <button class="btn-preset" id="loadLogisticsPreset">Logistics & Warehouse Sync</button>
-            <button class="btn-preset" id="loadCompressionPreset">Compression Engine</button>
         </div>
     </header>
 
@@ -466,7 +460,13 @@
     </div>
 
     <footer>
-        SYSTEM CONTACT // <a href="mailto:support@apislabs.net">support@apislabs.net</a> | <a href="#">Help & Documentation</a>
+        <div class="footer-left">
+            SYSTEM CONTACT // <a href="mailto:contact@apislabs.net">contact@apislabs.net</a>
+        </div>
+        <div class="footer-right telemetry-node" id="telemetryFooter">
+            NODE_LOC: <span class="telemetry-val" id="telemetryLoc">FETCHING...</span> | 
+            SYS_HITS: <span class="telemetry-val" id="telemetryHits">...</span>
+        </div>
     </footer>
 
 <script>
@@ -487,7 +487,6 @@
 
     const loadRetailPreset = document.getElementById('loadRetailPreset');
     const loadLogisticsPreset = document.getElementById('loadLogisticsPreset');
-    const loadCompressionPreset = document.getElementById('loadCompressionPreset');
 
     const MAX_CAPACITY = 8000; 
 
@@ -515,12 +514,6 @@
                 { "source_key": "assigned_load_lbs", "target_key": "metric_mass", "type": "float" },
                 { "source_key": "manifest_locked", "target_key": "cleared_flag", "type": "bool" }
             ]
-        },
-        compression: {
-            dataA: { "raw_payload": "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ" },
-            mappingA: [ { "source_key": "raw_payload", "target_key": "compressed_data", "type": "string" } ],
-            dataB: { "bitstream_rate": "8KB/s" },
-            mappingB: [ { "source_key": "bitstream_rate", "target_key": "compression_ratio", "type": "string" } ]
         }
     };
 
@@ -534,6 +527,69 @@
     }
 
     printLog("System initialized. Sandbox routing prepared.", "info");
+
+    function handleLocalHitFallback() {
+        try {
+            let localHits = localStorage.getItem('apis_labs_local_hits') || 0;
+            localHits = parseInt(localHits) + 1;
+            localStorage.setItem('apis_labs_local_hits', localHits);
+            
+            document.getElementById('telemetryHits').innerText = `${localHits.toLocaleString()} (LOCAL)`;
+            printLog(`External analytics cluster unreachable. Defaulted to local hardware cache.`, 'warn');
+        } catch (e) {
+            document.getElementById('telemetryHits').innerText = "LOCAL_ONLY";
+        }
+    }
+
+    // Asynchronous Initialization Telemetry (Location + Unique Hit Counter)
+    async function initTelemetry() {
+        let locString = "UNKNOWN";
+        
+        // 1. Resolve Location Discretely via free, non-authenticated IP lookup
+        try {
+            const locResponse = await fetch('https://ipapi.co/json/');
+            if (locResponse.ok) {
+                const locData = await locResponse.json();
+                locString = `${locData.city || 'UNK'}, ${locData.region_code || 'XX'}`;
+                document.getElementById('telemetryLoc').innerText = locString.toUpperCase();
+                printLog(`Inbound connection frame verified from node [${locString}]`, 'info');
+            } else {
+                document.getElementById('telemetryLoc').innerText = "EXTERNAL";
+            }
+        } catch (e) {
+            document.getElementById('telemetryLoc').innerText = "OFFLINE";
+        }
+
+        // 2. Resolve Hit Counter via a free text/json counter API
+        try {
+            const namespace = "apislabs_net";
+            const key = "demo_visits_2026"; 
+            
+            const countResponse = await fetch(`https://api.counterapi.dev/v1/${namespace}/${key}/increment`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (countResponse.ok) {
+                const countData = await countResponse.json();
+                const finalCount = countData.value || countData.count || 0;
+                document.getElementById('telemetryHits').innerText = finalCount.toLocaleString();
+                printLog(`Global telemetry sync sequence completed. Frame indices updated.`, 'accent');
+            } else {
+                console.warn(`Counter API returned status: ${countResponse.status}`);
+                handleLocalHitFallback();
+            }
+        } catch (err) {
+            console.error("Telemetry connection error:", err);
+            handleLocalHitFallback();
+        }
+    }
+
+    // Call telemetry on application runtime start
+    initTelemetry();
 
     function scrubInputText(text) {
         return text.replace(/^(Data Object:\s*|Rules Array:\s*)/i, '').trim();
@@ -571,7 +627,6 @@
 
     loadRetailPreset.addEventListener('click', () => loadPresetSuite('retail'));
     loadLogisticsPreset.addEventListener('click', () => loadPresetSuite('logistics'));
-    loadCompressionPreset.addEventListener('click', () => loadPresetSuite('compression'));
 
     [dataInputA, mappingInputA, dataInputB, mappingInputB].forEach(el => el.addEventListener('input', checkAggregateCapacity));
 
@@ -611,7 +666,6 @@
             transformBtn.disabled = true;
             statusLight.className = "status-light processing";
             statusLabel.innerText = "Processing Streams...";
-            applianceNode.classList.add('active-pulse');
 
             printLog("Dispatched processing frames to processing cluster.", "info");
 
@@ -627,7 +681,6 @@
 
             const parseBackendResponse = (res) => {
                 if (!res) return {};
-                
                 if (res.result && typeof res.result === 'string') {
                     const stringData = res.result;
                     const startIdx = stringData.indexOf('{');
@@ -651,8 +704,11 @@
                 return res;
             };
 
-            outputContainerA.innerText = typeof finalOutputA === 'object' ? JSON.stringify(parseBackendResponse(resultA), null, 2) : parseBackendResponse(resultA);
-            outputContainerB.innerText = typeof finalOutputB === 'object' ? JSON.stringify(parseBackendResponse(resultB), null, 2) : parseBackendResponse(resultB);
+            const finalOutputA = parseBackendResponse(resultA);
+            const finalOutputB = parseBackendResponse(resultB);
+
+            outputContainerA.innerText = typeof finalOutputA === 'object' ? JSON.stringify(finalOutputA, null, 2) : finalOutputA;
+            outputContainerB.innerText = typeof finalOutputB === 'object' ? JSON.stringify(finalOutputB, null, 2) : finalOutputB;
 
             printLog("All processing threads completed safely.", "success");
             printLog("Alpha monitor telemetry updated.", "success");
@@ -663,7 +719,6 @@
 
         } catch (error) {
             console.error("Pipeline processing failure:", error);
-            
             const failureMessage = error && error.message ? error.message : "Invalid payload syntax or connection drop.";
             
             printLog(`Pipeline Execution Fault: ${failureMessage}`, "error");
@@ -671,7 +726,6 @@
             statusLight.className = "status-light error";
         } finally {
             transformBtn.disabled = false;
-            applianceNode.classList.remove('active-pulse');
         }
     });
 </script>
