@@ -54,6 +54,45 @@
     </header>
 
     <div class="main-container">
+
+        <!-- APIScompress Card -->
+        <div class="portal-card">
+            <h2>APIScompress API (v1.0.0)</h2>
+            <p style="color: #8b949e; line-height: 1.6; margin: 0 auto 30px auto; max-width: 700px; font-size: 1rem;">
+                A high-performance C++ payload compression microservice engineered by Apis Labs LLC. Designed to reduce bandwidth costs and accelerate telemetry data transfers utilizing low-level nibble-context algorithms and GIL-free multi-threaded execution.
+            </p>
+
+            <div class="features-grid">
+                <div class="feature-item">
+                    <strong>Nibble-Context Core</strong>
+                    <p>Optimized low-level C++ bit-packing operations tailored specifically for structured JSON and CSV telemetry strings.</p>
+                </div>
+                <div class="feature-item">
+                    <strong>GIL-Free Concurrency</strong>
+                    <p>Headless Python wrapper via ctypes providing safe thread-pool execution without event-loop starvation.</p>
+                </div>
+                <div class="feature-item">
+                    <strong>Gateway Daemon</strong>
+                    <p>Cloud Run containerized architecture seamlessly integrated with RapidAPI gateways and local drop-folders.</p>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <!-- Replace with your actual RapidAPI listing link -->
+                <a href="https://rapidapi.com" class="btn btn-primary" target="_blank">
+                    Access via RapidAPI
+                </a>
+                <a href="mailto:contact@apislabs.net?subject=APIScompress Enterprise Licensing Inquiry" class="btn btn-secondary">
+                    Request Custom Deployment
+                </a>
+            </div>
+            
+            <div style="margin-top: 25px; font-size: 0.8rem; color: #8b949e; border-top: 1px solid var(--border-color); padding-top: 15px; font-weight: 500;">
+                Cloud Gateway Verified: Google Cloud Run / RapidAPI Proxy Architecture
+            </div>
+        </div>
+
+        <!-- APISout-Appliance Card -->
         <div class="portal-card">
             <h2>APISout-Appliance (v1.0.0)</h2>
             <p style="color: #8b949e; line-height: 1.6; margin: 0 auto 30px auto; max-width: 700px; font-size: 1rem;">
@@ -76,7 +115,6 @@
             </div>
 
             <div class="button-group">
-                <!-- Direct raw byte stream download route mapped directly to target repository -->
                 <a href="https://github.com/APISLabsLLC/APISout-Appliance/raw/refs/heads/main/apisout-appliance-v1.0.0.zip" class="btn btn-primary">
                     Download Standalone Core (.ZIP)
                 </a>
@@ -89,6 +127,7 @@
                 Cross-Platform Deployment Matrix Verified: Linux Racks / Microsoft Windows Server / Apple macOS
             </div>
         </div>
+
     </div>
 
     <footer>
