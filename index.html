@@ -26,8 +26,15 @@
             align-items: center;
             min-height: 100vh;
         }
-        header { text-align: center; margin-bottom: 30px; max-width: 800px; }
-        h1 { color: #ffffff; font-size: 2.2rem; margin: 0 0 10px 0; letter-spacing: -0.05em; }
+        header { text-align: center; margin-bottom: 35px; max-width: 800px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        .company-logo {
+            width: 100px;
+            height: auto;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+            border: 1px solid var(--border-color);
+        }
+        h1 { color: #ffffff; font-size: 2.2rem; margin: 0; letter-spacing: -0.05em; }
         h2 { color: #ffffff; font-size: 1.5rem; margin-top: 0; }
         .tagline { color: var(--accent-color); font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.15em; }
         .main-container { max-width: 850px; width: 100%; display: flex; flex-direction: column; gap: 25px; }
@@ -73,8 +80,11 @@
 <body>
 
     <header>
-        <div class="tagline">Apis Labs LLC</div>
-        <h1>Enterprise Data Infrastructure Ecosystem</h1>
+        <img src="APIsLabsLLC.jpg" alt="Apis Labs LLC Logo" class="company-logo">
+        <div>
+            <div class="tagline">Apis Labs LLC</div>
+            <h1>Enterprise Data Infrastructure Ecosystem</h1>
+        </div>
     </header>
 
     <div class="main-container">
@@ -82,7 +92,6 @@
         <!-- APIScompress Card -->
         <div class="portal-card">
             <div class="product-header">
-                <!-- Updated image extension to .png -->
                 <img src="APIsLabsAPIScompress.png" alt="APIScompress Logo" class="product-logo">
                 <div class="product-title-group">
                     <h2>APIScompress API (v1.0.0)</h2>
