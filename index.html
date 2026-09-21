@@ -19,168 +19,328 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 40px 20px;
+            padding: 30px;
             box-sizing: border-box;
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            justify-content: center;
             min-height: 100vh;
         }
-        header { text-align: center; margin-bottom: 35px; max-width: 800px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+
+        .dashboard-wrapper {
+            max-width: 1200px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        /* Top Header Brand */
+        .top-brand-bar {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+        }
         .company-logo {
-            width: 100px;
+            width: 60px;
             height: auto;
-            border-radius: 16px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+            border-radius: 10px;
             border: 1px solid var(--border-color);
         }
-        h1 { color: #ffffff; font-size: 2.2rem; margin: 0; letter-spacing: -0.05em; }
-        h2 { color: #ffffff; font-size: 1.5rem; margin-top: 0; }
-        .tagline { color: var(--accent-color); font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.15em; }
-        .main-container { max-width: 850px; width: 100%; display: flex; flex-direction: column; gap: 25px; }
-        .portal-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 35px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); text-align: center; }
-        
+        .top-brand-bar h1 {
+            color: #ffffff;
+            font-size: 1.5rem;
+            margin: 0;
+            letter-spacing: -0.03em;
+        }
+        .tagline {
+            color: var(--accent-color);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+
+        /* Master-Detail Split Layout */
+        .app-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 25px;
+            align-items: start;
+        }
+
+        @media (max-width: 850px) {
+            .app-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Sidebar Navigation */
+        .sidebar-nav {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .nav-heading {
+            font-size: 0.8rem;
+            color: #8b949e;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 5px;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            border-radius: 6px;
+            background: #0d1117;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .nav-item:hover, .nav-item.active {
+            border-color: var(--accent-color);
+            background: #21262d;
+            color: #ffffff;
+        }
+        .nav-thumb {
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            object-fit: cover;
+        }
+
+        /* Main Content Display Pane */
+        .portal-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 35px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            display: none; /* Controlled via script or state */
+        }
+        .portal-card.active-pane {
+            display: block;
+        }
+
         .product-header {
             display: flex;
             align-items: center;
-            justify-content: center;
             gap: 20px;
             margin-bottom: 20px;
             flex-wrap: wrap;
         }
         .product-logo {
-            width: 85px;
+            width: 75px;
             height: auto;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            border-radius: 10px;
             border: 1px solid var(--border-color);
         }
-        .product-title-group {
-            text-align: left;
-        }
         .product-title-group h2 {
+            color: #ffffff;
+            font-size: 1.5rem;
             margin: 0 0 5px 0;
         }
 
-        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; margin-top: 15px; text-align: left;}
-        .feature-item { background: #0d1117; border: 1px solid var(--border-color); border-radius: 6px; padding: 15px; }
-        .feature-item strong { color: #ffffff; display: block; margin-bottom: 4px; font-size: 0.95rem; }
-        .feature-item p { color: #8b949e; margin: 0; font-size: 0.85rem; line-height: 1.4; }
-        
-        .button-group { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-top: 25px; }
-        .btn { display: inline-block; padding: 14px 28px; border-radius: 6px; font-weight: bold; text-decoration: none; font-size: 0.95rem; transition: all 0.2s; cursor: pointer; box-sizing: border-box; }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            text-align: left;
+        }
+        .feature-item {
+            background: #0d1117;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 15px;
+        }
+        .feature-item strong {
+            color: #ffffff;
+            display: block;
+            margin-bottom: 4px;
+            font-size: 0.9rem;
+        }
+        .feature-item p {
+            color: #8b949e;
+            margin: 0;
+            font-size: 0.8rem;
+            line-height: 1.4;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 25px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            box-sizing: border-box;
+        }
         .btn-primary { background-color: var(--success-color); color: #ffffff; border: none; }
         .btn-primary:hover { background-color: var(--success-hover); }
         .btn-secondary { background-color: #21262d; color: var(--text-color); border: 1px solid var(--border-color); }
         .btn-secondary:hover { border-color: #8b949e; color: #ffffff; }
-        
-        footer { margin-top: 40px; font-size: 0.8rem; color: #8b949e; text-align: center; border-top: 1px solid var(--border-color); padding-top: 20px; width: 100%; max-width: 850px; }
+
+        footer {
+            margin-top: 20px;
+            font-size: 0.8rem;
+            color: #8b949e;
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
     </style>
 </head>
 <body>
 
-    <header>
-        <img src="APIsLabsLLC.jpg" alt="Apis Labs LLC Logo" class="company-logo">
-        <div>
-            <div class="tagline">Apis Labs LLC</div>
-            <h1>Enterprise Data Infrastructure Ecosystem</h1>
-        </div>
-    </header>
+    <div class="dashboard-wrapper">
 
-    <div class="main-container">
-
-        <!-- APIScompress Card -->
-        <div class="portal-card">
-            <div class="product-header">
-                <img src="APIsLabsAPIScompress.png" alt="APIScompress Logo" class="product-logo">
-                <div class="product-title-group">
-                    <h2>APIScompress API (v1.0.0)</h2>
-                    <span class="tagline" style="font-size: 0.75rem;">Compression Engine</span>
-                </div>
-            </div>
-            
-            <p style="color: #8b949e; line-height: 1.6; margin: 0 auto 20px auto; max-width: 700px; font-size: 0.95rem;">
-                A high-performance C++ payload compression microservice engineered by Apis Labs LLC. Designed to reduce bandwidth costs and accelerate telemetry data transfers utilizing low-level nibble-context algorithms and GIL-free multi-threaded execution.
-            </p>
-
-            <div class="features-grid">
-                <div class="feature-item">
-                    <strong>Nibble-Context Core</strong>
-                    <p>Optimized low-level C++ bit-packing operations tailored specifically for structured JSON and CSV telemetry strings.</p>
-                </div>
-                <div class="feature-item">
-                    <strong>GIL-Free Concurrency</strong>
-                    <p>Headless Python wrapper via ctypes providing safe thread-pool execution without event-loop starvation.</p>
-                </div>
-                <div class="feature-item">
-                    <strong>Gateway Daemon</strong>
-                    <p>Cloud Run containerized architecture seamlessly integrated with RapidAPI gateways and local drop-folders.</p>
-                </div>
-            </div>
-
-            <div class="button-group">
-                <a href="https://rapidapi.com/itsjaytoyou/api/apiscompress" class="btn btn-primary" target="_blank">
-                    Access via RapidAPI
-                </a>
-                <a href="mailto:contact@apislabs.net?subject=APIScompress Enterprise Licensing Inquiry" class="btn btn-secondary">
-                    Request Custom Deployment
-                </a>
-            </div>
-            
-            <div style="margin-top: 20px; font-size: 0.8rem; color: #8b949e; border-top: 1px solid var(--border-color); padding-top: 15px; font-weight: 500;">
-                Cloud Gateway Verified: Google Cloud Run / RapidAPI Proxy Architecture
+        <!-- Top Brand Bar -->
+        <div class="top-brand-bar">
+            <img src="APIsLabsLLC.jpg" alt="Apis Labs LLC Logo" class="company-logo">
+            <div>
+                <div class="tagline">Apis Labs LLC</div>
+                <h1>Enterprise Data Infrastructure Ecosystem</h1>
             </div>
         </div>
 
-        <!-- APISout-Appliance Card -->
-        <div class="portal-card">
-            <div class="product-header">
-                <img src="APIsLabsAPIsOut.png" alt="APISout Logo" class="product-logo">
-                <div class="product-title-group">
-                    <h2>APISout API (v1.0.0)</h2>
-                    <span class="tagline" style="font-size: 0.75rem;">JSON Transformation Engine</span>
-                </div>
-            </div>
+        <!-- Master-Detail Layout container -->
+        <div class="app-layout">
 
-            <p style="color: #8b949e; line-height: 1.6; margin: 0 auto 20px auto; max-width: 700px; font-size: 0.95rem;">
-                A high-throughput, containerized data normalization microservice built by Apis Labs LLC for JSON field sanitization and declarative type-casting. Run high-speed payload alignment seamlessly through cloud gateway infrastructure.
-            </p>
-
-            <div class="features-grid">
-                <div class="feature-item">
-                    <strong>Type-Casting Matrix</strong>
-                    <p>Enforces declarative schema filters to format raw strings cleanly into verified String, Float, Int, and Boolean types.</p>
-                </div>
-                <div class="feature-item">
-                    <strong>Unicode Processing</strong>
-                    <p>Built-in sanitization engines isolate numeric targets by instantly stripping trailing currency glyphs, padding, and clutter.</p>
-                </div>
-                <div class="feature-item">
-                    <strong>Gateway Daemon</strong>
-                    <p>Cloud Run containerized architecture seamlessly integrated with RapidAPI gateways and enterprise pipelines.</p>
-                </div>
-            </div>
-
-            <div class="button-group">
-                <a href="https://rapidapi.com/itsjaytoyou/api/apisout" class="btn btn-primary" target="_blank">
-                    Access via RapidAPI
+            <!-- Sidebar Navigation (Master List) -->
+            <div class="sidebar-nav">
+                <div class="nav-heading">Product Catalog</div>
+                
+                <a href="#apiscompress" class="nav-item active" onclick="switchTab(event, 'pane-compress')">
+                    <img src="APIsLabsAPIScompress.png" alt="" class="nav-thumb">
+                    <span>APIScompress</span>
                 </a>
-                <a href="mailto:contact@apislabs.net?subject=APISout Enterprise Deployment Inquiry" class="btn btn-secondary">
-                    Request Custom Deployment
+
+                <a href="#apisout" class="nav-item" onclick="switchTab(event, 'pane-out')">
+                    <img src="APIsLabsAPIsOut.png" alt="" class="nav-thumb">
+                    <span>APISout API</span>
                 </a>
             </div>
-            
-            <div style="margin-top: 20px; font-size: 0.8rem; color: #8b949e; border-top: 1px solid var(--border-color); padding-top: 15px; font-weight: 500;">
-                Cloud Gateway Verified: Google Cloud Run / RapidAPI Proxy Architecture
+
+            <!-- Detail Display Pane -->
+            <div>
+                <!-- APIScompress Pane -->
+                <div id="pane-compress" class="portal-card active-pane">
+                    <div class="product-header">
+                        <img src="APIsLabsAPIScompress.png" alt="APIScompress Logo" class="product-logo">
+                        <div class="product-title-group">
+                            <h2>APIScompress API (v1.0.0)</h2>
+                            <span class="tagline">Compression Engine</span>
+                        </div>
+                    </div>
+                    
+                    <p style="color: #8b949e; line-height: 1.6; font-size: 0.95rem; margin: 0 0 20px 0;">
+                        A high-performance C++ payload compression microservice engineered by Apis Labs LLC. Designed to reduce bandwidth costs and accelerate telemetry data transfers utilizing low-level nibble-context algorithms and GIL-free multi-threaded execution.
+                    </p>
+
+                    <div class="features-grid">
+                        <div class="feature-item">
+                            <strong>Nibble-Context Core</strong>
+                            <p>Optimized low-level C++ bit-packing operations tailored specifically for structured JSON and CSV telemetry.</p>
+                        </div>
+                        <div class="feature-item">
+                            <strong>GIL-Free Concurrency</strong>
+                            <p>Headless Python wrapper via ctypes providing safe thread-pool execution without event-loop starvation.</p>
+                        </div>
+                        <div class="feature-item">
+                            <strong>Gateway Daemon</strong>
+                            <p>Cloud Run containerized architecture seamlessly integrated with RapidAPI gateways.</p>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <a href="https://rapidapi.com/itsjaytoyou/api/apiscompress" class="btn btn-primary" target="_blank">Access via RapidAPI</a>
+                        <a href="mailto:contact@apislabs.net?subject=APIScompress Enterprise Licensing Inquiry" class="btn btn-secondary">Request Custom Deployment</a>
+                    </div>
+                </div>
+
+                <!-- APISout Pane -->
+                <div id="pane-out" class="portal-card">
+                    <div class="product-header">
+                        <img src="APIsLabsAPIsOut.png" alt="APISout Logo" class="product-logo">
+                        <div class="product-title-group">
+                            <h2>APISout API (v1.0.0)</h2>
+                            <span class="tagline">JSON Transformation Engine</span>
+                        </div>
+                    </div>
+
+                    <p style="color: #8b949e; line-height: 1.6; font-size: 0.95rem; margin: 0 0 20px 0;">
+                        A high-throughput, containerized data normalization microservice built by Apis Labs LLC for JSON field sanitization and declarative type-casting. Run high-speed payload alignment seamlessly through cloud gateway infrastructure.
+                    </p>
+
+                    <div class="features-grid">
+                        <div class="feature-item">
+                            <strong>Type-Casting Matrix</strong>
+                            <p>Enforces declarative schema filters to format raw strings cleanly into verified types.</p>
+                        </div>
+                        <div class="feature-item">
+                            <strong>Unicode Processing</strong>
+                            <p>Built-in sanitization engines isolate numeric targets by instantly stripping clutter.</p>
+                        </div>
+                        <div class="feature-item">
+                            <strong>Gateway Daemon</strong>
+                            <p>Cloud Run containerized architecture seamlessly integrated with RapidAPI gateways.</p>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <a href="https://rapidapi.com/itsjaytoyou/api/apisout" class="btn btn-primary" target="_blank">Access via RapidAPI</a>
+                        <a href="mailto:contact@apislabs.net?subject=APISout Enterprise Deployment Inquiry" class="btn btn-secondary">Request Custom Deployment</a>
+                    </div>
+                </div>
             </div>
+
         </div>
+
+        <footer>
+            Corporate Compliance and Proprietary Infrastructures Managed by Apis Labs LLC Architecture Ecosystem<br>
+            For configuration requests or system audit documentation access, contact: contact@apislabs.net
+        </footer>
 
     </div>
 
-    <footer>
-        Corporate Compliance and Proprietary Infrastructures Managed by Apis Labs LLC Architecture Ecosystem<br>
-        For configuration requests or system audit documentation access, contact: contact@apislabs.net
-    </footer>
-
+    <script>
+        function switchTab(event, paneId) {
+            event.preventDefault();
+            
+            // Hide all cards
+            document.querySelectorAll('.portal-card').forEach(card => {
+                card.classList.remove('active-pane');
+            });
+            
+            // Remove active style from nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Show target card and highlight nav item
+            document.getElementById(paneId).classList.add('active-pane');
+            event.currentTarget.classList.add('active');
+        }
+    </script>
 </body>
 </html>
