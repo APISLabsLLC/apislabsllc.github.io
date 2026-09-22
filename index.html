@@ -318,7 +318,7 @@
                     </div>
 
                     <div class="button-group">
-                        <a href="https://rapidapi.com/itsjaytoyou/api/apiscompress" class="btn btn-primary" target="_blank">Access via RapidAPI</a>
+                        <a href="https://rapidapi.com/itsjaytoyou/api/apiscompress" class="btn btn-primary" onclick="trackInterest(event, 'apiscompress', this.href)" target="_blank">Access via RapidAPI</a>
                         <a href="mailto:contact@apislabs.net?subject=APIScompress Enterprise Licensing Inquiry" class="btn btn-secondary">Request Custom Deployment</a>
                     </div>
                 </div>
@@ -356,7 +356,7 @@
                     </div>
 
                     <div class="button-group">
-                        <a href="https://rapidapi.com/itsjaytoyou/api/apisout" class="btn btn-primary" target="_blank">Access via RapidAPI</a>
+                        <a href="https://rapidapi.com/itsjaytoyou/api/apisout" class="btn btn-primary" onclick="trackInterest(event, 'apisout', this.href)" target="_blank">Access via RapidAPI</a>
                         <a href="mailto:contact@apislabs.net?subject=APISout Enterprise Deployment Inquiry" class="btn btn-secondary">Request Custom Deployment</a>
                     </div>
                 </div>
@@ -394,6 +394,20 @@
 
             // Update URL hash without jumping page
             history.pushState(null, null, `#${hashName}`);
+        }
+
+        // Lightweight, privacy-first interest tracker using navigator.sendBeacon
+        function trackInterest(event, productName, destinationUrl) {
+            event.preventDefault();
+            
+            // Sends a non-blocking background ping to your serverless route/endpoint
+            // Your server reads the host's country header (e.g., Cloudflare CF-IPCountry) and increments a counter
+            if (navigator.sendBeacon) {
+                navigator.sendBeacon(`/api/track-interest?product=${productName}`);
+            }
+
+            // Open the destination safely in a new tab
+            window.open(destinationUrl, '_blank');
         }
 
         // Handle direct load via URL hash (e.g., domain.com/#out)
