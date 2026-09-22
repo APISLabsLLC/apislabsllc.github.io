@@ -318,7 +318,7 @@
                     </div>
 
                     <div class="button-group">
-                        <a href="https://rapidapi.com/itsjaytoyou/api/apiscompress" class="btn btn-primary" onclick="trackInterest(event, 'apiscompress', this.href)" target="_blank">Access via RapidAPI</a>
+                        <a href="https://rapidapi.com/apis-labs-llc1-apis-labs-llc-default/api/apiscompress" class="btn btn-primary" onclick="trackInterest(event, 'apiscompress', this.href)" target="_blank">Access via RapidAPI</a>
                         <a href="mailto:contact@apislabs.net?subject=APIScompress Enterprise Licensing Inquiry" class="btn btn-secondary">Request Custom Deployment</a>
                     </div>
                 </div>
@@ -356,7 +356,7 @@
                     </div>
 
                     <div class="button-group">
-                        <a href="https://rapidapi.com/itsjaytoyou/api/apisout" class="btn btn-primary" onclick="trackInterest(event, 'apisout', this.href)" target="_blank">Access via RapidAPI</a>
+                        <a href="https://rapidapi.com/apis-labs-llc1-apis-labs-llc-default/api/apisout" class="btn btn-primary" onclick="trackInterest(event, 'apisout', this.href)" target="_blank">Access via RapidAPI</a>
                         <a href="mailto:contact@apislabs.net?subject=APISout Enterprise Deployment Inquiry" class="btn btn-secondary">Request Custom Deployment</a>
                     </div>
                 </div>
@@ -396,14 +396,14 @@
             history.pushState(null, null, `#${hashName}`);
         }
 
-        // Lightweight, privacy-first interest tracker using navigator.sendBeacon
+        // Lightweight, privacy-first interest tracker using navigator.sendBeacon pointing to dedicated Cloud Run service
         function trackInterest(event, productName, destinationUrl) {
             event.preventDefault();
             
-            // Sends a non-blocking background ping to your serverless route/endpoint
-            // Your server reads the host's country header (e.g., Cloudflare CF-IPCountry) and increments a counter
+            const trackingUrl = `https://apislabs-tracker-77667424925.us-central1.run.app/api/track?product=${productName}`;
+            
             if (navigator.sendBeacon) {
-                navigator.sendBeacon(`/api/track-interest?product=${productName}`);
+                navigator.sendBeacon(trackingUrl);
             }
 
             // Open the destination safely in a new tab
