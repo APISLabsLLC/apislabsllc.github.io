@@ -3,7 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apis Labs LLC | Enterprise Data Infrastructure</title>
+    <title>Apis Labs LLC | JSON Transformer & Payload Compression Tools</title>
+    
+    <!-- Search Engine Optimization (SEO) Meta Tags -->
+    <meta name="description" content="High-performance enterprise data tools by Apis Labs LLC. Explore APIScompress for high-speed payload compression and APISout for high-throughput JSON transformation and data normalization.">
+    <meta name="keywords" content="JSON transformer, payload compression tool, C++ compression microservice, JSON field normalization, data transformation API, APIScompress, APISout, Apis Labs LLC">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://apislabs.net/">
+
+    <!-- Open Graph / Social Media Meta Tags -->
+    <meta property="og:title" content="Apis Labs LLC | JSON Transformer & Payload Compression Tools">
+    <meta property="og:description" content="High-performance data infrastructure tools: APIScompress payload compression and APISout JSON transformer microservice.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="APIsLabsLLC.jpg">
+
+    <!-- Structured Data / JSON-LD Schema for Search Engines -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "name": "Apis Labs LLC",
+          "url": "https://apislabs.net",
+          "logo": "APIsLabsLLC.jpg",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "contact@apislabs.net",
+            "contactType": "customer support"
+          }
+        },
+        {
+          "@type": "SoftwareApplication",
+          "name": "APIScompress",
+          "applicationCategory": "DeveloperApplication",
+          "operatingSystem": "Cloud",
+          "description": "A high-performance C++ payload compression microservice designed to reduce bandwidth costs and accelerate telemetry data transfers utilizing low-level nibble-context algorithms.",
+          "offers": {
+            "@type": "Offer",
+            "url": "https://rapidapi.com/apis-labs-llc1-apis-labs-llc-default/api/apiscompress"
+          }
+        },
+        {
+          "@type": "SoftwareApplication",
+          "name": "APISout",
+          "applicationCategory": "DeveloperApplication",
+          "operatingSystem": "Cloud",
+          "description": "A high-throughput containerized JSON data normalization and transformation microservice for field sanitization and declarative type-casting.",
+          "offers": {
+            "@type": "Offer",
+            "url": "https://rapidapi.com/apis-labs-llc1-apis-labs-llc-default/api/apisout"
+          }
+        }
+      ]
+    }
+    </script>
+
     <style>
         :root {
             --bg-color: #0d1117;
@@ -257,42 +312,42 @@
     <div class="dashboard-wrapper">
 
         <!-- Top Brand Bar -->
-        <div class="top-brand-bar">
+        <header class="top-brand-bar">
             <img src="APIsLabsLLC.jpg" alt="Apis Labs LLC Logo" class="company-logo">
             <div>
                 <div class="tagline">Apis Labs LLC</div>
                 <h1>Enterprise Data Infrastructure Ecosystem</h1>
             </div>
-        </div>
+        </header>
 
         <!-- Master-Detail Layout container -->
-        <div class="app-layout">
+        <main class="app-layout">
 
             <!-- Sidebar Navigation (Master List) -->
-            <div class="sidebar-nav">
+            <nav class="sidebar-nav" aria-label="Product Catalog">
                 <div class="nav-heading">Product Catalog</div>
                 
                 <a href="#compress" class="nav-item active" onclick="switchTab(event, 'pane-compress', 'compress')">
-                    <img src="APIsLabsAPIScompress.png" alt="" class="nav-thumb">
+                    <img src="APIsLabsAPIScompress.png" alt="APIScompress Payload Compression Tool" class="nav-thumb">
                     <span>APIScompress</span>
                 </a>
 
                 <a href="#out" class="nav-item" onclick="switchTab(event, 'pane-out', 'out')">
-                    <img src="APIsLabsAPIsOut.png" alt="" class="nav-thumb">
+                    <img src="APIsLabsAPIsOut.png" alt="APISout JSON Transformer Tool" class="nav-thumb">
                     <span>APISout API</span>
                 </a>
-            </div>
+            </nav>
 
             <!-- Detail Display Pane -->
             <div>
                 <!-- APIScompress Pane -->
-                <div id="pane-compress" class="portal-card active-pane">
+                <section id="pane-compress" class="portal-card active-pane">
                     <div class="product-header">
                         <div class="product-title-area">
-                            <img src="APIsLabsAPIScompress.png" alt="APIScompress Logo" class="product-logo">
+                            <img src="APIsLabsAPIScompress.png" alt="APIScompress Payload Compression Logo" class="product-logo">
                             <div class="product-title-group">
                                 <h2>APIScompress API (v1.0.0)</h2>
-                                <span class="tagline">Compression Engine</span>
+                                <span class="tagline">Data &amp; Payload Compression Engine</span>
                             </div>
                         </div>
                         <div class="status-badge"><span class="status-dot"></span> Gateway Operational</div>
@@ -305,7 +360,7 @@
                     <div class="features-grid">
                         <div class="feature-item">
                             <strong>Nibble-Context Core</strong>
-                            <p>Optimized low-level C++ bit-packing operations tailored specifically for structured JSON and CSV telemetry.</p>
+                            <p>Optimized low-level C++ bit-packing operations tailored specifically for structured JSON and CSV telemetry compression.</p>
                         </div>
                         <div class="feature-item">
                             <strong>GIL-Free Concurrency</strong>
@@ -318,36 +373,36 @@
                     </div>
 
                     <div class="button-group">
-                        <a href="https://rapidapi.com/apis-labs-llc1-apis-labs-llc-default/api/apiscompress" class="btn btn-primary" onclick="trackInterest(event, 'apiscompress', this.href)" target="_blank">Access via RapidAPI</a>
+                        <a href="https://rapidapi.com/apis-labs-llc1-apis-labs-llc-default/api/apiscompress" class="btn btn-primary" onclick="trackInterest(event, 'apiscompress', this.href)" target="_blank" rel="noopener">Access via RapidAPI</a>
                         <a href="mailto:contact@apislabs.net?subject=APIScompress Enterprise Licensing Inquiry" class="btn btn-secondary">Request Custom Deployment</a>
                     </div>
-                </div>
+                </section>
 
                 <!-- APISout Pane -->
-                <div id="pane-out" class="portal-card">
+                <section id="pane-out" class="portal-card">
                     <div class="product-header">
                         <div class="product-title-area">
-                            <img src="APIsLabsAPIsOut.png" alt="APISout Logo" class="product-logo">
+                            <img src="APIsLabsAPIsOut.png" alt="APISout JSON Transformer Logo" class="product-logo">
                             <div class="product-title-group">
                                 <h2>APISout API (v1.0.0)</h2>
-                                <span class="tagline">JSON Transformation Engine</span>
+                                <span class="tagline">JSON Transformer &amp; Normalization Engine</span>
                             </div>
                         </div>
                         <div class="status-badge"><span class="status-dot"></span> Gateway Operational</div>
                     </div>
 
                     <p style="color: #8b949e; line-height: 1.6; font-size: 0.95rem; margin: 0 0 20px 0;">
-                        A high-throughput, containerized data normalization microservice built by Apis Labs LLC for JSON field sanitization and declarative type-casting. Run high-speed payload alignment seamlessly through cloud gateway infrastructure.
+                        A high-throughput, containerized data normalization microservice and JSON transformer built by Apis Labs LLC for JSON field sanitization and declarative type-casting. Run high-speed payload alignment seamlessly through cloud gateway infrastructure.
                     </p>
 
                     <div class="features-grid">
                         <div class="feature-item">
                             <strong>Type-Casting Matrix</strong>
-                            <p>Enforces declarative schema filters to format raw strings cleanly into verified types.</p>
+                            <p>Enforces declarative schema filters to transform raw JSON strings cleanly into verified data types.</p>
                         </div>
                         <div class="feature-item">
                             <strong>Unicode Processing</strong>
-                            <p>Built-in sanitization engines isolate numeric targets by instantly stripping clutter.</p>
+                            <p>Built-in sanitization engines isolate numeric targets by instantly stripping clutter from JSON fields.</p>
                         </div>
                         <div class="feature-item">
                             <strong>Gateway Daemon</strong>
@@ -356,13 +411,13 @@
                     </div>
 
                     <div class="button-group">
-                        <a href="https://rapidapi.com/apis-labs-llc1-apis-labs-llc-default/api/apisout" class="btn btn-primary" onclick="trackInterest(event, 'apisout', this.href)" target="_blank">Access via RapidAPI</a>
+                        <a href="https://rapidapi.com/apis-labs-llc1-apis-labs-llc-default/api/apisout" class="btn btn-primary" onclick="trackInterest(event, 'apisout', this.href)" target="_blank" rel="noopener">Access via RapidAPI</a>
                         <a href="mailto:contact@apislabs.net?subject=APISout Enterprise Deployment Inquiry" class="btn btn-secondary">Request Custom Deployment</a>
                     </div>
-                </div>
+                </section>
             </div>
 
-        </div>
+        </main>
 
         <footer>
             Corporate Compliance and Proprietary Infrastructures Managed by Apis Labs LLC Architecture Ecosystem<br>
@@ -386,14 +441,21 @@
             });
             
             // Show target card and highlight nav item
-            document.getElementById(paneId).classList.add('active-pane');
+            const targetPane = document.getElementById(paneId);
+            if (targetPane) {
+                targetPane.classList.add('active-pane');
+            }
             
             // Find corresponding nav item and set active
             const activeNav = document.querySelector(`[href="#${hashName}"]`);
             if (activeNav) activeNav.classList.add('active');
 
             // Update URL hash without jumping page
-            history.pushState(null, null, `#${hashName}`);
+            if (history.pushState) {
+                history.pushState(null, null, `#${hashName}`);
+            } else {
+                location.hash = `#${hashName}`;
+            }
         }
 
         // Lightweight, privacy-first interest tracker using navigator.sendBeacon pointing to dedicated Cloud Run service
@@ -407,14 +469,26 @@
             }
 
             // Open the destination safely in a new tab
-            window.open(destinationUrl, '_blank');
+            window.open(destinationUrl, '_blank', 'noopener,noreferrer');
         }
 
-        // Handle direct load via URL hash (e.g., domain.com/#out)
+        // Handle direct load via URL hash (e.g., domain.com/#compress or domain.com/#out)
         window.addEventListener('DOMContentLoaded', () => {
-            const hash = window.location.hash;
-            if (hash === '#out') {
+            const hash = window.location.hash.replace('#', '');
+            if (hash === 'out') {
                 switchTab(null, 'pane-out', 'out');
+            } else if (hash === 'compress') {
+                switchTab(null, 'pane-compress', 'compress');
+            }
+        });
+
+        // Listen for hash changes (e.g. browser back/forward buttons)
+        window.addEventListener('hashchange', () => {
+            const hash = window.location.hash.replace('#', '');
+            if (hash === 'out') {
+                switchTab(null, 'pane-out', 'out');
+            } else if (hash === 'compress') {
+                switchTab(null, 'pane-compress', 'compress');
             }
         });
     </script>
